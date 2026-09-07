@@ -2,10 +2,9 @@ import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 
-function Character() {
-  const group = useRef()
+function Character({ characterRef }) {
   const { scene, animations } = useGLTF('/models/child.glb')
-  const { actions } = useAnimations(animations, group)
+  const { actions } = useAnimations(animations, characterRef)
 
   useEffect(() => {
     const runAction = actions['Run']
@@ -17,10 +16,10 @@ function Character() {
   }, [actions])
 
   useFrame((state, delta) => {
-    group.current.position.z -= delta * 2
+    characterRef.current.position.z -= delta * 2
   })
 
-  return <primitive ref={group} object={scene} />
+  return <primitive ref={characterRef} object={scene} />
 }
 
 export default Character
