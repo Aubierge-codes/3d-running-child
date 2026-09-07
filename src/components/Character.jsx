@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 
 function Character() {
@@ -14,6 +15,10 @@ function Character() {
       runAction.stop()
     }
   }, [actions])
+
+  useFrame((state, delta) => {
+    group.current.position.z -= delta * 2
+  })
 
   return <primitive ref={group} object={scene} />
 }
