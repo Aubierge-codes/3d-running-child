@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
+import Character from './Character'
 
 function RotatingCube() {
   const meshRef = useRef()
@@ -22,7 +23,7 @@ function Scene() {
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
 
-      <RotatingCube />
+      <Character />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[10, 10]} />
