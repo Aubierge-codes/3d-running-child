@@ -1,12 +1,21 @@
-import { useGLTF } from '@react-three/drei'
+import { useEffect, useRef } from 'react'
+import { useGLTF, useAnimations } from '@react-three/drei'
 
 function Character() {
+  const group = useRef()
   const { scene, animations } = useGLTF('/models/child.glb')
+  const { actions } = useAnimations(animations, group)
 
-  console.log('Loaded scene:', scene)
-  console.log('Available animations:', animations)
+  useEffect(() => {
+    const runAction = actions['Run']
+    runAction.reset().play()
 
-  return <primitive object={scene} />
+    return () => {
+      runAction.stop()
+    }
+  }, [actions])
+
+  return <primitive ref={group} object={scene} />
 }
 
 export default Character
