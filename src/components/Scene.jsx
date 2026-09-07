@@ -1,4 +1,20 @@
-import { Canvas } from '@react-three/fiber'
+import { useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+
+function RotatingCube() {
+  const meshRef = useRef()
+
+  useFrame((state, delta) => {
+    meshRef.current.rotation.y += delta * 1
+  })
+
+  return (
+    <mesh ref={meshRef} position={[0, 0.5, 0]}>
+      <boxGeometry />
+      <meshStandardMaterial color="orange" />
+    </mesh>
+  )
+}
 
 function Scene() {
   return (
@@ -6,10 +22,7 @@ function Scene() {
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
 
-      <mesh position={[0, 0.5, 0]}>
-        <boxGeometry />
-        <meshStandardMaterial color="orange" />
-      </mesh>
+      <RotatingCube />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[10, 10]} />
