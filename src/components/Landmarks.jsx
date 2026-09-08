@@ -26,33 +26,31 @@ function Bush({ position, scale = 1 }) {
   )
 }
 
-const rockPositions = [
-  [6, 0, -2],
-  [-8, 0, 3],
-  [10, 0, 6],
-  [-5, 0, -9],
-  [2, 0, 9],
-  [-12, 0, -4],
-]
-
-const bushPositions = [
-  [4, 0, 5],
-  [-6, 0, -3],
-  [8, 0, -7],
-  [-3, 0, 8],
-  [12, 0, 1],
-  [-10, 0, 6],
+export const obstacles = [
+  { position: [6, 0, -2], scale: 1.0, radius: 0.7 },
+  { position: [-8, 0, 3], scale: 1.1, radius: 0.75 },
+  { position: [10, 0, 6], scale: 0.9, radius: 0.65 },
+  { position: [-5, 0, -9], scale: 1.2, radius: 0.8 },
+  { position: [2, 0, 9], scale: 0.8, radius: 0.6 },
+  { position: [-12, 0, -4], scale: 1.0, radius: 0.7 },
+  { position: [4, 0, 5], scale: 0.9, radius: 0.7, type: 'bush' },
+  { position: [-6, 0, -3], scale: 1.0, radius: 0.75, type: 'bush' },
+  { position: [8, 0, -7], scale: 1.1, radius: 0.8, type: 'bush' },
+  { position: [-3, 0, 8], scale: 0.85, radius: 0.65, type: 'bush' },
+  { position: [12, 0, 1], scale: 1.0, radius: 0.75, type: 'bush' },
+  { position: [-10, 0, 6], scale: 0.9, radius: 0.7, type: 'bush' },
 ]
 
 function Landmarks() {
   return (
     <>
-      {rockPositions.map((pos, i) => (
-        <Rock key={`rock-${i}`} position={pos} scale={0.7 + Math.random() * 0.6} />
-      ))}
-      {bushPositions.map((pos, i) => (
-        <Bush key={`bush-${i}`} position={pos} scale={0.8 + Math.random() * 0.4} />
-      ))}
+      {obstacles.map((obs, i) =>
+        obs.type === 'bush' ? (
+          <Bush key={`obs-${i}`} position={obs.position} scale={obs.scale} />
+        ) : (
+          <Rock key={`obs-${i}`} position={obs.position} scale={obs.scale} />
+        )
+      )}
     </>
   )
 }

@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import Character from './Character'
 import Coin from './Coin'
-import Landmarks from './Landmarks'
+import Landmarks, { obstacles } from './Landmarks'
 
 function FollowCamera({ target }) {
   const zoomDistance = useRef(5)
@@ -67,6 +67,32 @@ const initialCoins = [
   { id: 4, position: [0, 0.5, -8] },
 ]
 
+const CHARACTER_RADIUS = 0.4
+
+function ObstacleManager({ characterRef }) {
+  useFrame(() => {
+    if (!characterRef.current) return
+
+    const charPos = characterRef.current.position
+
+    obstacles.forEach((obs) => {
+      const dx = charPos.x - obs.position[0]
+      const dz = charPos.z - obs.position[2]
+      const distance = Math.sqrt(dx * dx + dz * dz)
+      const minDistance = obs.radius + CHARACTER_RADIUS
+
+      if (distance < minDistance && distance > 0) {
+        const pushX = (dx / distance) * (minDistance - distance)
+        const pushZ = (dz / distance) * (minDistance - distance)
+        charPos.x += pushX
+        charPos.z += pushZ
+      }
+    })
+  })
+
+  return null
+}
+
 function Scene() {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
@@ -89,6 +115,7 @@ function Scene() {
       <Character characterRef={characterRef} />
       <FollowCamera target={characterRef} />
       <CoinManager characterRef={characterRef} coins={coins} onCollect={handleCollect} />
+      <ObstacleManager characterRef={characterRef} />
 
       {coins.map((coin) => (
         <Coin key={coin.id} position={coin.position} />
