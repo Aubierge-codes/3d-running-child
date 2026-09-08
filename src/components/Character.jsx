@@ -6,6 +6,14 @@ import { useKeyboardControls } from '../hooks/useKeyboardControls'
 const GRAVITY = 20
 const JUMP_STRENGTH = 7
 
+function shortestAngleDiff(target, current) {
+  const twoPi = Math.PI * 2
+  let diff = (target - current) % twoPi
+  if (diff < -Math.PI) diff += twoPi
+  if (diff > Math.PI) diff -= twoPi
+  return diff
+}
+
 function Character({ characterRef }) {
   const { scene, animations } = useGLTF('/models/child.glb')
   const { actions } = useAnimations(animations, characterRef)
@@ -48,8 +56,7 @@ function Character({ characterRef }) {
       fadeToAction('Idle')
     }
 
-    let diff = targetRotation.current - characterRef.current.rotation.y
-    diff = ((diff + Math.PI) % (Math.PI * 2)) - Math.PI
+    const diff = shortestAngleDiff(targetRotation.current, characterRef.current.rotation.y)
     characterRef.current.rotation.y += diff * 0.15
 
     if (jump && isGrounded.current) {
