@@ -3,35 +3,73 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import Character from './Character'
 import Coin from './Coin'
 import Landmarks, { obstacles } from './Landmarks'
+import SoilPatches from './SoilPatches'
+import Mountains from './Mountains'
 
 function FollowCamera({ target }) {
-  const zoomDistance = useRef(5)
+  const radius = useRef(5)
+  const azimuth = useRef(0)
+  const polar = useRef(1.0)
+  const isDragging = useRef(false)
+  const lastPointer = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     const handleWheel = (e) => {
-      zoomDistance.current += e.deltaY * 0.01
-      zoomDistance.current = Math.min(Math.max(zoomDistance.current, 2), 12)
+      radius.current += e.deltaY * 0.01
+      radius.current = Math.min(Math.max(radius.current, 2), 40)
     }
 
+    const handlePointerDown = (e) => {
+  isDragging.current = true
+  lastPointer.current = { x: e.clientX, y: e.clientY }
+}
+
+    const handlePointerUp = () => {
+      isDragging.current = false
+    }
+
+    const handlePointerMove = (e) => {
+  if (!isDragging.current) return
+
+  const deltaX = e.clientX - lastPointer.current.x
+  const deltaY = e.clientY - lastPointer.current.y
+  lastPointer.current = { x: e.clientX, y: e.clientY }
+
+  azimuth.current -= deltaX * 0.005
+  polar.current -= deltaY * 0.005
+  polar.current = Math.min(Math.max(polar.current, 0.15), Math.PI - 0.15)
+}
+
     window.addEventListener('wheel', handleWheel)
-    return () => window.removeEventListener('wheel', handleWheel)
+    window.addEventListener('pointerdown', handlePointerDown)
+    window.addEventListener('pointerup', handlePointerUp)
+    window.addEventListener('pointermove', handlePointerMove)
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('pointerdown', handlePointerDown)
+      window.removeEventListener('pointerup', handlePointerUp)
+      window.removeEventListener('pointermove', handlePointerMove)
+    }
   }, [])
 
   useFrame((state) => {
     if (!target.current) return
 
     const targetPosition = target.current.position
-    const dist = zoomDistance.current
+    const r = radius.current
+    const a = azimuth.current
+    const p = polar.current
 
     const desiredCameraPos = {
-      x: targetPosition.x,
-      y: targetPosition.y + dist * 0.5,
-      z: targetPosition.z + dist,
+      x: targetPosition.x + r * Math.sin(p) * Math.sin(a),
+      y: targetPosition.y + r * Math.cos(p),
+      z: targetPosition.z + r * Math.sin(p) * Math.cos(a),
     }
 
-    state.camera.position.x += (desiredCameraPos.x - state.camera.position.x) * 0.05
-    state.camera.position.y += (desiredCameraPos.y - state.camera.position.y) * 0.05
-    state.camera.position.z += (desiredCameraPos.z - state.camera.position.z) * 0.05
+    state.camera.position.x += (desiredCameraPos.x - state.camera.position.x) * 0.08
+    state.camera.position.y += (desiredCameraPos.y - state.camera.position.y) * 0.08
+    state.camera.position.z += (desiredCameraPos.z - state.camera.position.z) * 0.08
 
     state.camera.lookAt(targetPosition)
   })
@@ -111,11 +149,13 @@ function Scene() {
     <Canvas camera={{ position: [3, 3, 5], fov: 50 }}>
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 5, 5]} intensity={1} />
-
+      <fog attach="fog" args={['#a8c8e0', 30, 150]} />
       <Character characterRef={characterRef} />
       <FollowCamera target={characterRef} />
       <CoinManager characterRef={characterRef} coins={coins} onCollect={handleCollect} />
       <ObstacleManager characterRef={characterRef} />
+      <SoilPatches />
+      <Mountains />
 
       {coins.map((coin) => (
         <Coin key={coin.id} position={coin.position} />

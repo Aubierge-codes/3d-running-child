@@ -28,6 +28,43 @@ function Character({ characterRef }) {
     activeAction.current.reset().play()
   }, [actions])
 
+  useEffect(() => {
+    const colorOverrides = {
+      Shirt: '#e05252',
+      UnderShirt: '#f5d488',
+      Pants: '#4a4a68',
+      Boots: '#3a2a1e',
+      Hair: '#2b1a10',
+      Skin: '#d9a679',
+    }
+
+    scene.traverse((child) => {
+      if (child.isMesh && child.material?.name in colorOverrides) {
+        child.material.color.set(colorOverrides[child.material.name])
+
+        if (child.material.name === 'Skin') {
+          child.material.roughness = 0.85
+          child.material.metalness = 0
+        }
+      }
+    })
+
+    const boneScales = {
+      Head: 0.85,
+      'UpperLeg.L': 1.15,
+      'UpperLeg.R': 1.15,
+      'LowerLeg.L': 1.15,
+      'LowerLeg.R': 1.15,
+    }
+
+    scene.traverse((child) => {
+      if (child.isBone && child.name in boneScales) {
+        const s = boneScales[child.name]
+        child.scale.set(s, s, s)
+      }
+    })
+  }, [scene])
+
   function fadeToAction(name, duration = 0.3) {
     const nextAction = actions[name]
     if (activeAction.current === nextAction) return
