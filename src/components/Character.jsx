@@ -1,22 +1,51 @@
 import { useEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
+import { useKeyboardControls } from '../hooks/useKeyboardControls'
 
 function Character({ characterRef }) {
   const { scene, animations } = useGLTF('/models/child.glb')
   const { actions } = useAnimations(animations, characterRef)
+  const keys = useKeyboardControls()
+  const activeAction = useRef(null)
+  const targetRotation = useRef(0)
 
   useEffect(() => {
-    const runAction = actions['Run']
-    runAction.reset().play()
-
-    return () => {
-      runAction.stop()
-    }
+    activeAction.current = actions['Idle']
+    activeAction.current.reset().play()
   }, [actions])
 
+  function fadeToAction(name, duration = 0.3) {
+    const nextAction = actions[name]
+    if (activeAction.current === nextAction) return
+
+    nextAction.reset().fadeIn(duration).play()
+    activeAction.current.fadeOut(duration)
+    activeAction.current = nextAction
+  }
+
   useFrame((state, delta) => {
-    characterRef.current.position.z -= delta * 2
+    const { forward, backward, left, right } = keys.current
+
+    const moveX = (right ? 1 : 0) - (left ? 1 : 0)
+    const moveZ = (backward ? 1 : 0) - (forward ? 1 : 0)
+    const isMoving = moveX !== 0 || moveZ !== 0
+
+    if (isMoving) {
+      const length = Math.sqrt(moveX * moveX + moveZ * moveZ)
+      const speed = 3
+      characterRef.current.position.x += (moveX / length) * speed * delta
+      characterRef.current.position.z += (moveZ / length) * speed * delta
+
+      targetRotation.current = Math.atan2(moveX, -moveZ)
+      fadeToAction('Run')
+    } else {
+      fadeToAction('Idle')
+    }
+
+    let diff = targetRotation.current - characterRef.current.rotation.y
+    diff = ((diff + Math.PI) % (Math.PI * 2)) - Math.PI
+    characterRef.current.rotation.y += diff * 0.15
   })
 
   return <primitive ref={characterRef} object={scene} />
