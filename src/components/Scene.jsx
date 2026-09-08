@@ -33,6 +33,7 @@ function FollowCamera({ target }) {
 
   const deltaX = e.clientX - lastPointer.current.x
   const deltaY = e.clientY - lastPointer.current.y
+  console.log('raw delta:', deltaX, deltaY, 'clientX:', e.clientX)
   lastPointer.current = { x: e.clientX, y: e.clientY }
 
   azimuth.current -= deltaX * 0.005
