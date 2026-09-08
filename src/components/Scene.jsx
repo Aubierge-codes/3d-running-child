@@ -49,9 +49,9 @@ function Scene() {
       <FollowCamera target={characterRef} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="green" />
-      </mesh>
+  <planeGeometry args={[200, 200]} />
+  <meshStandardMaterial color="green" />
+</mesh>
     </Canvas>
   )
 }
