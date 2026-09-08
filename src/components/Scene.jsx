@@ -1,6 +1,8 @@
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
+import { useEffect } from 'react'
 import Character from './Character'
+import Coin from './Coin'
 
 function FollowCamera({ target }) {
   const zoomDistance = useRef(5)
@@ -37,6 +39,14 @@ function FollowCamera({ target }) {
   return null
 }
 
+const coinPositions = [
+  [3, 0.5, -3],
+  [-4, 0.5, -6],
+  [5, 0.5, 2],
+  [-3, 0.5, 4],
+  [0, 0.5, -8],
+]
+
 function Scene() {
   const characterRef = useRef()
 
@@ -48,10 +58,14 @@ function Scene() {
       <Character characterRef={characterRef} />
       <FollowCamera target={characterRef} />
 
+      {coinPositions.map((pos, i) => (
+        <Coin key={i} position={pos} />
+      ))}
+
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-  <planeGeometry args={[200, 200]} />
-  <meshStandardMaterial color="green" />
-</mesh>
+        <planeGeometry args={[200, 200]} />
+        <meshStandardMaterial color="green" />
+      </mesh>
     </Canvas>
   )
 }
