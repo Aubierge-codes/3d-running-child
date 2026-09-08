@@ -50,7 +50,7 @@ function Character({ characterRef }) {
       characterRef.current.position.x += (moveX / length) * speed * delta
       characterRef.current.position.z += (moveZ / length) * speed * delta
 
-      targetRotation.current = Math.atan2(moveX, -moveZ)
+      targetRotation.current = Math.atan2(-moveX, -moveZ) + Math.PI
       fadeToAction('Run')
     } else {
       fadeToAction('Idle')

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import Character from './Character'
 import Coin from './Coin'
+import Landmarks from './Landmarks'
 
 function FollowCamera({ target }) {
   const zoomDistance = useRef(5)
@@ -92,6 +93,8 @@ function Scene() {
       {coins.map((coin) => (
         <Coin key={coin.id} position={coin.position} />
       ))}
+
+      <Landmarks />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[200, 200]} />
