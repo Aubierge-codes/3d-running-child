@@ -38,6 +38,7 @@ function FollowCamera({ target }) {
   azimuth.current -= deltaX * 0.005
   polar.current -= deltaY * 0.005
   polar.current = Math.min(Math.max(polar.current, 0.15), Math.PI - 0.15)
+console.log('polar:', polar.current.toFixed(2), 'azimuth:', azimuth.current.toFixed(2))
 }
 
     window.addEventListener('wheel', handleWheel)
