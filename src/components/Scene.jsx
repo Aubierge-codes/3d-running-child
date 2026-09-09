@@ -8,14 +8,11 @@ import Landmarks, { obstacles } from './Landmarks'
 import SoilPatches from './SoilPatches'
 import Mountains from './Mountains'
 import Trees, { treeColliders } from './Trees'
-import Village, { houseColliders } from './Village'
 import Clouds from './Clouds'
 import Birds from './Birds'
-import Village, { houseColliders, Fence, fenceColliders } from './Village'
 import Pond from './Pond'
 import Flora from './Flora'
 import Butterflies from './Butterflies'
-
 function CameraRig({ target }) {
   const controlsRef = useRef()
 
