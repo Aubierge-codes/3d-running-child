@@ -6,6 +6,32 @@ function Rock({ position, scale = 1 }) {
     </mesh>
   )
 }
+function seededRandom(seed) {
+  let value = seed
+  return function () {
+    value = (value * 9301 + 49297) % 233280
+    return value / 233280
+  }
+}
+
+function generateScattered(count, worldSize, clearRadius, seed, radiusRange) {
+  const rand = seededRandom(seed)
+  const result = []
+  for (let i = 0; i < count; i++) {
+    let x, z, dist
+    do {
+      x = (rand() - 0.5) * worldSize
+      z = (rand() - 0.5) * worldSize
+      dist = Math.sqrt(x * x + z * z)
+    } while (dist < clearRadius)
+    const scale = radiusRange[0] + rand() * (radiusRange[1] - radiusRange[0])
+    result.push({ position: [x, 0, z], scale, radius: scale * 0.65 })
+  }
+  return result
+}
+
+const extraRocks = generateScattered(15, 190, 12, 777, [0.7, 1.3])
+const extraBushes = generateScattered(15, 190, 12, 888, [0.75, 1.25]).map((b) => ({ ...b, type: 'bush' }))
 
 function Bush({ position, scale = 1 }) {
   return (
@@ -45,6 +71,8 @@ export const obstacles = [
   { position: [-14, 0, -8], scale: 1.05, radius: 0.75, type: 'bush' },
   { position: [3, 0, -14], scale: 0.9, radius: 0.7, type: 'bush' },
   { position: [-2, 0, 15], scale: 1.1, radius: 0.8, type: 'bush' },
+  ...extraRocks,
+  ...extraBushes,
 ]
 
 function Landmarks() {

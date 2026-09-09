@@ -7,6 +7,9 @@ import Landmarks, { obstacles } from './Landmarks'
 import SoilPatches from './SoilPatches'
 import Mountains from './Mountains'
 import Trees, { treeColliders } from './Trees'
+import Village from './Village'
+import Clouds from './Clouds'
+import Birds from './Birds'
 
 function CameraRig({ target }) {
   const controlsRef = useRef()
@@ -61,7 +64,7 @@ const initialCoins = [
 const CHARACTER_RADIUS = 0.4
 
 function ObstacleManager({ characterRef }) {
-  const allObstacles = [...obstacles, ...treeColliders]
+  const allObstacles = [...obstacles, ...treeColliders, ...houseColliders]
 
   useFrame(() => {
     if (!characterRef.current) return
@@ -86,14 +89,18 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene() {
+function Scene({ onScoreChange }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const [score, setScore] = useState(0)
 
   function handleCollect(id) {
     setCoins((prev) => prev.filter((coin) => coin.id !== id))
-    setScore((prev) => prev + 1)
+    setScore((prev) => {
+      const next = prev + 1
+      onScoreChange(next)
+      return next
+    })
   }
 
   useEffect(() => {
@@ -112,6 +119,9 @@ function Scene() {
       <SoilPatches />
       <Sky sunPosition={[100, 20, 100]} turbidity={2} rayleigh={1} />
       <Mountains />
+      <Village />
+      <Clouds />
+      <Birds />
       <Trees />
       {coins.map((coin) => (
         <Coin key={coin.id} position={coin.position} />
