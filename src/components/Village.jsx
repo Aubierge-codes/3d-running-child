@@ -31,4 +31,41 @@ function Village() {
   )
 }
 
+function FencePost({ position }) {
+  return (
+    <mesh position={position}>
+      <boxGeometry args={[0.15, 1, 0.15]} />
+      <meshStandardMaterial color="#6b4a35" roughness={0.9} />
+    </mesh>
+  )
+}
+
+function generateFenceRing(center, radius, count) {
+  const posts = []
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2
+    const x = center[0] + Math.cos(angle) * radius
+    const z = center[2] + Math.sin(angle) * radius
+    posts.push({ position: [x, 0.5, z], radius: 0.3 })
+  }
+  return posts
+}
+
+export const fenceColliders = [
+  ...generateFenceRing([22, 0, 17], 6, 16),
+  ...generateFenceRing([-22, 0, -17], 6, 16),
+]
+
+function Fence() {
+  return (
+    <>
+      {fenceColliders.map((post, i) => (
+        <FencePost key={i} position={post.position} />
+      ))}
+    </>
+  )
+}
+
+export { Fence }
+
 export default Village

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Sky, OrbitControls } from '@react-three/drei'
+import Village, { houseColliders, Fence, fenceColliders } from './Village'
 import Character from './Character'
 import Coin from './Coin'
 import Landmarks, { obstacles } from './Landmarks'
@@ -10,6 +11,10 @@ import Trees, { treeColliders } from './Trees'
 import Village, { houseColliders } from './Village'
 import Clouds from './Clouds'
 import Birds from './Birds'
+import Village, { houseColliders, Fence, fenceColliders } from './Village'
+import Pond from './Pond'
+import Flora from './Flora'
+import Butterflies from './Butterflies'
 
 function CameraRig({ target }) {
   const controlsRef = useRef()
@@ -64,7 +69,7 @@ const initialCoins = [
 const CHARACTER_RADIUS = 0.4
 
 function ObstacleManager({ characterRef }) {
-  const allObstacles = [...obstacles, ...treeColliders, ...houseColliders]
+  const allObstacles = [...obstacles, ...treeColliders, ...houseColliders, ...fenceColliders]
 
   useFrame(() => {
     if (!characterRef.current) return
@@ -117,6 +122,10 @@ function Scene({ onScoreChange }) {
       <Mountains />
       <Village />
       <Clouds />
+      <Pond />
+<Flora />
+<Butterflies />
+<Fence />
       <Birds />
       <Trees />
       {coins.map((coin) => (
