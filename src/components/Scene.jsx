@@ -7,7 +7,7 @@ import Landmarks, { obstacles } from './Landmarks'
 import SoilPatches from './SoilPatches'
 import Mountains from './Mountains'
 import Trees, { treeColliders } from './Trees'
-import Village from './Village'
+import Village, { houseColliders } from './Village'
 import Clouds from './Clouds'
 import Birds from './Birds'
 
@@ -102,10 +102,6 @@ function Scene({ onScoreChange }) {
       return next
     })
   }
-
-  useEffect(() => {
-    console.log('Score:', score)
-  }, [score])
 
   return (
     <Canvas camera={{ position: [3, 3, 5], fov: 50 }}>
