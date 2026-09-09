@@ -6,6 +6,7 @@ import Coin from './Coin'
 import Landmarks, { obstacles } from './Landmarks'
 import SoilPatches from './SoilPatches'
 import Mountains from './Mountains'
+import Trees, { treeColliders } from './Trees'
 
 function CameraRig({ target }) {
   const controlsRef = useRef()
@@ -60,12 +61,14 @@ const initialCoins = [
 const CHARACTER_RADIUS = 0.4
 
 function ObstacleManager({ characterRef }) {
+  const allObstacles = [...obstacles, ...treeColliders]
+
   useFrame(() => {
     if (!characterRef.current) return
 
     const charPos = characterRef.current.position
 
-    obstacles.forEach((obs) => {
+    allObstacles.forEach((obs) => {
       const dx = charPos.x - obs.position[0]
       const dz = charPos.z - obs.position[2]
       const distance = Math.sqrt(dx * dx + dz * dz)
@@ -109,7 +112,7 @@ function Scene() {
       <SoilPatches />
       <Sky sunPosition={[100, 20, 100]} turbidity={2} rayleigh={1} />
       <Mountains />
-
+      <Trees />
       {coins.map((coin) => (
         <Coin key={coin.id} position={coin.position} />
       ))}
