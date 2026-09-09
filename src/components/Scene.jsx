@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import Character from './Character'
+import { Sky } from '@react-three/drei'
 import Coin from './Coin'
 import Landmarks, { obstacles } from './Landmarks'
 import SoilPatches from './SoilPatches'
@@ -157,6 +158,7 @@ function Scene() {
       <CoinManager characterRef={characterRef} coins={coins} onCollect={handleCollect} />
       <ObstacleManager characterRef={characterRef} />
       <SoilPatches />
+      <Sky sunPosition={[100, 20, 100]} turbidity={2} rayleigh={1} />
       <Mountains />
 
       {coins.map((coin) => (
