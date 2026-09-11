@@ -112,7 +112,7 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onInPond }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
@@ -151,6 +151,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
         onLand={triggerShake}
         onSpeedChange={onSpeedChange}
         onRotationChange={onRotationChange}
+        onPositionChange={onPositionChange}
       />
       <CameraRig target={characterRef} shakeRef={shakeUntilRef} />
       <CoinManager characterRef={characterRef} coins={coins} onCollect={handleCollect} />

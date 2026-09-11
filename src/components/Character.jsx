@@ -14,7 +14,7 @@ function shortestAngleDiff(target, current) {
   return diff
 }
 
-function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange, onRotationChange }) {
+function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange, onRotationChange, onPositionChange }) {
   const { scene, animations } = useGLTF('/models/child.glb')
   const { actions } = useAnimations(animations, characterRef)
   const keys = useKeyboardControls()
@@ -116,6 +116,7 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
       lastPos.current = { x: characterRef.current.position.x, z: characterRef.current.position.z }
       if (onSpeedChange) onSpeedChange(dist / 0.15)
       if (onRotationChange) onRotationChange(characterRef.current.rotation.y)
+      if (onPositionChange) onPositionChange({ x: characterRef.current.position.x, z: characterRef.current.position.z })
     }
   })
 
