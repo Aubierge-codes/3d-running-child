@@ -9,6 +9,10 @@ function formatTime(seconds) {
 
 function App() {
   const [score, setScore] = useState(0)
+  const [highScore, setHighScore] = useState(() => {
+    const saved = localStorage.getItem('highScore')
+    return saved ? Number(saved) : 0
+  })
   const [coinsLeft, setCoinsLeft] = useState(6)
   const [resetSignal, setResetSignal] = useState(0)
   const [isNight, setIsNight] = useState(false)
@@ -33,6 +37,13 @@ function App() {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    if (score > highScore) {
+      setHighScore(score)
+      localStorage.setItem('highScore', String(score))
+    }
+  }, [score])
+
   return (
     <>
       <Scene
@@ -49,7 +60,7 @@ function App() {
       />
 
       <div style={{ position: 'absolute', top: 20, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '28px', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
-        🪙 {score}
+        🪙 {score} <span style={{ fontSize: '16px', opacity: 0.8 }}>(best: {highScore})</span>
       </div>
 
       <div style={{ position: 'absolute', top: 60, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '16px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
