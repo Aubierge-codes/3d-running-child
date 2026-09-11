@@ -36,4 +36,4 @@ function Fireflies() {
   )
 }
 
-export default Firefliesd
+export default Fireflies
