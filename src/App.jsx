@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import Scene from './components/Scene'
 
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
 function App() {
   const [score, setScore] = useState(0)
   const [coinsLeft, setCoinsLeft] = useState(6)
@@ -12,6 +18,7 @@ function App() {
   const [speed, setSpeed] = useState(0)
   const [facing, setFacing] = useState(0)
   const [inPond, setInPond] = useState(false)
+  const [playTime, setPlayTime] = useState(0)
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -19,6 +26,11 @@ function App() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => setPlayTime((t) => t + 1), 1000)
+    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -42,6 +54,10 @@ function App() {
 
       <div style={{ position: 'absolute', top: 60, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '16px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
         Speed: {speed.toFixed(1)} m/s
+      </div>
+
+      <div style={{ position: 'absolute', top: 90, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '16px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
+        ⏱ {formatTime(playTime)}
       </div>
 
       <div style={{ position: 'absolute', top: 60, left: 160, width: 24, height: 24, pointerEvents: 'none', transform: `rotate(${facing}rad)` }}>
