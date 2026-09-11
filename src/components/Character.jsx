@@ -26,6 +26,9 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
   const jumpKeyWasDown = useRef(false)
   const lastPos = useRef({ x: 0, z: 0 })
   const reportTimer = useRef(0)
+  const headBoneRef = useRef(null)
+  const idleLookTimer = useRef(2)
+  const idleLookTarget = useRef(0)
 
   useEffect(() => {
     activeAction.current = actions['Idle']
@@ -52,6 +55,9 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
       if (child.isBone && child.name in boneScales) {
         const s = boneScales[child.name]
         child.scale.set(s, s, s)
+      }
+      if (child.isBone && child.name === 'Head') {
+        headBoneRef.current = child
       }
     })
   }, [scene])
@@ -105,6 +111,19 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
       verticalVelocity.current = 0
       isGrounded.current = true
       jumpsUsed.current = 0
+    }
+
+    if (headBoneRef.current) {
+      if (isMoving) {
+        headBoneRef.current.rotation.y += (0 - headBoneRef.current.rotation.y) * 0.1
+      } else {
+        idleLookTimer.current -= delta
+        if (idleLookTimer.current <= 0) {
+          idleLookTarget.current = (Math.random() - 0.5) * 0.8
+          idleLookTimer.current = 2 + Math.random() * 3
+        }
+        headBoneRef.current.rotation.y += (idleLookTarget.current - headBoneRef.current.rotation.y) * 0.04
+      }
     }
 
     reportTimer.current += delta
