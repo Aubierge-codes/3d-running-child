@@ -18,7 +18,7 @@ function App() {
   })
   const [coinsLeft, setCoinsLeft] = useState(6)
   const [resetSignal, setResetSignal] = useState(0)
-const [timeOfDay, setTimeOfDay] = useState(12)
+  const [timeOfDay, setTimeOfDay] = useState(12)
   const [isRaining, setIsRaining] = useState(false)
   const [paused, setPaused] = useState(false)
   const [baseSpeed, setBaseSpeed] = useState(3)
@@ -28,6 +28,10 @@ const [timeOfDay, setTimeOfDay] = useState(12)
   const [playTime, setPlayTime] = useState(0)
   const [position, setPosition] = useState({ x: 0, z: 0 })
   const [toasts, setToasts] = useState([])
+  const [showSettings, setShowSettings] = useState(false)
+  const [dustEnabled, setDustEnabled] = useState(true)
+  const [shakeEnabled, setShakeEnabled] = useState(true)
+  const [fogEnabled, setFogEnabled] = useState(true)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
 
@@ -88,7 +92,7 @@ const [timeOfDay, setTimeOfDay] = useState(12)
         onScoreChange={handleScoreChange}
         onCoinsLeftChange={handleCoinsLeftChange}
         resetSignal={resetSignal}
-        isNight={isNight}
+        timeOfDay={timeOfDay}
         isRaining={isRaining}
         paused={paused}
         baseSpeed={baseSpeed}
@@ -96,6 +100,9 @@ const [timeOfDay, setTimeOfDay] = useState(12)
         onRotationChange={setFacing}
         onPositionChange={setPosition}
         onInPond={setInPond}
+        dustEnabled={dustEnabled}
+        shakeEnabled={shakeEnabled}
+        fogEnabled={fogEnabled}
       />
 
       <div style={{ position: 'absolute', top: 20, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '28px', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
@@ -130,18 +137,37 @@ const [timeOfDay, setTimeOfDay] = useState(12)
 
       <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', gap: '8px' }}>
         <button onClick={() => setResetSignal((n) => n + 1)}>Respawn</button>
-        <div style={{ position: 'absolute', bottom: 60, right: 20, color: 'white', fontFamily: 'sans-serif' }}>
-  <label style={{ display: 'block', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
-    Time: {Math.floor(timeOfDay)}:00
-  </label>
-  <input type="range" min="0" max="24" step="0.25" value={timeOfDay} onChange={(e) => setTimeOfDay(Number(e.target.value))} />
-</div>
         <button onClick={() => setIsRaining((r) => !r)}>{isRaining ? 'Stop Rain' : 'Rain'}</button>
+        <button onClick={() => setShowSettings((s) => !s)}>⚙️ Settings</button>
       </div>
+
+      {showSettings && (
+        <div style={{
+          position: 'absolute', top: 60, right: 20, background: 'rgba(20,20,20,0.85)',
+          color: 'white', padding: '12px 16px', borderRadius: '8px', fontFamily: 'sans-serif', fontSize: '14px',
+        }}>
+          <label style={{ display: 'block', marginBottom: '6px' }}>
+            <input type="checkbox" checked={dustEnabled} onChange={(e) => setDustEnabled(e.target.checked)} /> Dust particles
+          </label>
+          <label style={{ display: 'block', marginBottom: '6px' }}>
+            <input type="checkbox" checked={shakeEnabled} onChange={(e) => setShakeEnabled(e.target.checked)} /> Camera shake
+          </label>
+          <label style={{ display: 'block' }}>
+            <input type="checkbox" checked={fogEnabled} onChange={(e) => setFogEnabled(e.target.checked)} /> Fog
+          </label>
+        </div>
+      )}
 
       <div style={{ position: 'absolute', bottom: 20, right: 20, color: 'white', fontFamily: 'sans-serif' }}>
         <label style={{ display: 'block', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>Speed: {baseSpeed}</label>
         <input type="range" min="1" max="8" step="0.5" value={baseSpeed} onChange={(e) => setBaseSpeed(Number(e.target.value))} />
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 60, right: 20, color: 'white', fontFamily: 'sans-serif' }}>
+        <label style={{ display: 'block', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
+          Time: {Math.floor(timeOfDay)}:00
+        </label>
+        <input type="range" min="0" max="24" step="0.25" value={timeOfDay} onChange={(e) => setTimeOfDay(Number(e.target.value))} />
       </div>
 
       <div style={{ position: 'absolute', top: 100, right: 20, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>

@@ -164,7 +164,7 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
@@ -186,7 +186,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
   }
 
   function triggerShake() {
-    shakeUntilRef.current = performance.now() + 300
+    if (shakeEnabled) shakeUntilRef.current = performance.now() + 300
   }
 
   useEffect(() => {
@@ -199,7 +199,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
     <Canvas camera={{ position: [3, 3, 5], fov: 50 }}>
       <ambientLight intensity={tod.ambientIntensity} />
       <directionalLight position={[5, 5, 5]} intensity={tod.lightIntensity} />
-      <fog attach="fog" args={[tod.fogColor, 30, 150]} />
+      {fogEnabled && <fog attach="fog" args={[tod.fogColor, 30, 150]} />}
       <Sky sunPosition={tod.sunPosition} turbidity={2} rayleigh={1} />
 
       <Character
@@ -215,7 +215,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
       <CoinManager characterRef={characterRef} coins={coins} setCoins={setCoins} onCollect={handleCollect} magnetUntilRef={magnetUntilRef} />
       <ObstacleManager characterRef={characterRef} />
       <PondZone characterRef={characterRef} onInPond={onInPond} />
-      <Dust characterRef={characterRef} />
+      {dustEnabled && <Dust characterRef={characterRef} />}
       <SprintTrail characterRef={characterRef} />
       {tod.isNightTime && <Fireflies />}
       {isRaining && <Rain />}
