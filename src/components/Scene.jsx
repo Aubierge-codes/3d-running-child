@@ -16,6 +16,7 @@ import Butterflies from './Butterflies'
 import Dust from './Dust'
 import Fireflies from './Fireflies'
 import Rain from './Rain'
+import SprintTrail from './SprintTrail'
 
 function CameraRig({ target, shakeRef }) {
   const controlsRef = useRef()
@@ -181,6 +182,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
       <ObstacleManager characterRef={characterRef} />
       <PondZone characterRef={characterRef} onInPond={onInPond} />
       <Dust characterRef={characterRef} />
+      <SprintTrail characterRef={characterRef} />
       {isNight && <Fireflies />}
       {isRaining && <Rain />}
 
