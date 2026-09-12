@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import Scene from './components/Scene'
 
+const MUSIC_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
+
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60)
   const s = seconds % 60
@@ -32,8 +34,10 @@ function App() {
   const [dustEnabled, setDustEnabled] = useState(true)
   const [shakeEnabled, setShakeEnabled] = useState(true)
   const [fogEnabled, setFogEnabled] = useState(true)
+  const [musicOn, setMusicOn] = useState(false)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
+  const musicRef = useRef(null)
 
   function showToast(message) {
     const id = Date.now() + Math.random()
@@ -42,6 +46,21 @@ function App() {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 3000)
   }
+
+  useEffect(() => {
+    musicRef.current = new Audio(MUSIC_DATA)
+    musicRef.current.loop = true
+    musicRef.current.volume = 0.3
+  }, [])
+
+  useEffect(() => {
+    if (!musicRef.current) return
+    if (musicOn) {
+      musicRef.current.play().catch(() => {})
+    } else {
+      musicRef.current.pause()
+    }
+  }, [musicOn])
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -138,6 +157,7 @@ function App() {
       <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', gap: '8px' }}>
         <button onClick={() => setResetSignal((n) => n + 1)}>Respawn</button>
         <button onClick={() => setIsRaining((r) => !r)}>{isRaining ? 'Stop Rain' : 'Rain'}</button>
+        <button onClick={() => setMusicOn((m) => !m)}>{musicOn ? '🔊 Music On' : '🔇 Music Off'}</button>
         <button onClick={() => setShowSettings((s) => !s)}>⚙️ Settings</button>
       </div>
 
