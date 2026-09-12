@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Sky, OrbitControls } from '@react-three/drei'
 import Character from './Character'
@@ -246,15 +246,17 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
 
       <FPSCounter onFpsChange={onFpsChange} />
 
-      <Character
-        characterRef={characterRef}
-        paused={paused}
-        baseSpeed={baseSpeed}
-        onLand={triggerShake}
-        onSpeedChange={onSpeedChange}
-        onRotationChange={onRotationChange}
-        onPositionChange={onPositionChange}
-      />
+      <Suspense fallback={null}>
+        <Character
+          characterRef={characterRef}
+          paused={paused}
+          baseSpeed={baseSpeed}
+          onLand={triggerShake}
+          onSpeedChange={onSpeedChange}
+          onRotationChange={onRotationChange}
+          onPositionChange={onPositionChange}
+        />
+      </Suspense>
       <CameraRig target={characterRef} shakeRef={shakeUntilRef} />
       <CoinManager characterRef={characterRef} coins={coins} setCoins={setCoins} onCollect={handleCollect} magnetUntilRef={magnetUntilRef} />
       <ObstacleManager characterRef={characterRef} />

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useProgress } from '@react-three/drei'
 import Scene from './components/Scene'
 
 const MUSIC_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
@@ -39,6 +40,7 @@ function App() {
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
   const musicRef = useRef(null)
+  const { progress, active } = useProgress()
 
   function showToast(message) {
     const id = Date.now() + Math.random()
@@ -125,6 +127,20 @@ function App() {
         fogEnabled={fogEnabled}
         onFpsChange={setFps}
       />
+
+      {active && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: '#0a1a0a', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', color: 'white',
+          fontFamily: 'sans-serif', zIndex: 1000,
+        }}>
+          <div style={{ fontSize: '24px', marginBottom: '16px' }}>Loading world...</div>
+          <div style={{ width: '200px', height: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ width: `${progress}%`, height: '100%', background: '#4ade80', transition: 'width 0.2s' }} />
+          </div>
+        </div>
+      )}
 
       <div style={{ position: 'absolute', top: 20, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '28px', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
         🪙 {score} <span style={{ fontSize: '16px', opacity: 0.8 }}>(best: {highScore})</span>
