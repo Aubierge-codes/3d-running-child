@@ -208,9 +208,21 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
   }, [resetSignal])
 
   return (
-    <Canvas camera={{ position: [3, 3, 5], fov: 50 }}>
+    <Canvas shadows camera={{ position: [3, 3, 5], fov: 50 }}>
       <ambientLight intensity={tod.ambientIntensity} />
-      <directionalLight position={[5, 5, 5]} intensity={tod.lightIntensity} />
+      <directionalLight
+        position={[15, 20, 10]}
+        intensity={tod.lightIntensity}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-left={-25}
+        shadow-camera-right={25}
+        shadow-camera-top={25}
+        shadow-camera-bottom={-25}
+        shadow-camera-near={1}
+        shadow-camera-far={60}
+      />
       {fogEnabled && <fog attach="fog" args={[tod.fogColor, 30, 150]} />}
       <Sky sunPosition={tod.sunPosition} turbidity={2} rayleigh={1} />
 
@@ -249,7 +261,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
 
       <Landmarks />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[200, 200]} />
         <meshStandardMaterial color={tod.groundColor} roughness={1} />
       </mesh>
