@@ -52,6 +52,24 @@ function getTimeOfDayValues(timeOfDay) {
   }
 }
 
+function FPSCounter({ onFpsChange }) {
+  const smoothedFps = useRef(60)
+  const reportTimer = useRef(0)
+
+  useFrame((state, delta) => {
+    const instantFps = 1 / delta
+    smoothedFps.current += (instantFps - smoothedFps.current) * 0.1
+
+    reportTimer.current += delta
+    if (reportTimer.current > 0.3) {
+      reportTimer.current = 0
+      if (onFpsChange) onFpsChange(Math.round(smoothedFps.current))
+    }
+  })
+
+  return null
+}
+
 function CameraRig({ target, shakeRef }) {
   const controlsRef = useRef()
 
@@ -166,7 +184,7 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
@@ -225,6 +243,8 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
       />
       {fogEnabled && <fog attach="fog" args={[tod.fogColor, 30, 150]} />}
       <Sky sunPosition={tod.sunPosition} turbidity={2} rayleigh={1} />
+
+      <FPSCounter onFpsChange={onFpsChange} />
 
       <Character
         characterRef={characterRef}

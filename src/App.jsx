@@ -35,6 +35,7 @@ function App() {
   const [shakeEnabled, setShakeEnabled] = useState(true)
   const [fogEnabled, setFogEnabled] = useState(true)
   const [musicOn, setMusicOn] = useState(false)
+  const [fps, setFps] = useState(60)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
   const musicRef = useRef(null)
@@ -122,6 +123,7 @@ function App() {
         dustEnabled={dustEnabled}
         shakeEnabled={shakeEnabled}
         fogEnabled={fogEnabled}
+        onFpsChange={setFps}
       />
 
       <div style={{ position: 'absolute', top: 20, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '28px', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
@@ -134,6 +136,10 @@ function App() {
 
       <div style={{ position: 'absolute', top: 90, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '16px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
         ⏱ {formatTime(playTime)}
+      </div>
+
+      <div style={{ position: 'absolute', top: 120, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none', opacity: 0.8 }}>
+        {fps} FPS
       </div>
 
       <div style={{ position: 'absolute', top: 60, left: 160, width: 24, height: 24, pointerEvents: 'none', transform: `rotate(${facing}rad)` }}>
