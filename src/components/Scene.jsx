@@ -44,17 +44,36 @@ function CameraRig({ target, shakeRef }) {
   )
 }
 
-function CoinManager({ characterRef, coins, onCollect }) {
-  useFrame(() => {
+function CoinManager({ characterRef, coins, setCoins, onCollect, magnetUntilRef }) {
+  useFrame((state, delta) => {
     if (!characterRef.current) return
     const charPos = characterRef.current.position
+    const magnetActive = magnetUntilRef.current > performance.now()
+
     coins.forEach((coin) => {
       const dx = charPos.x - coin.position[0]
       const dz = charPos.z - coin.position[2]
       const distance = Math.sqrt(dx * dx + dz * dz)
-      if (distance < 1) onCollect(coin.id)
+
+      if (distance < 1) {
+        onCollect(coin.id)
+        return
+      }
+
+      if (magnetActive && distance < 10) {
+        setCoins((prev) =>
+          prev.map((c) => {
+            if (c.id !== coin.id) return c
+            const pullSpeed = 6
+            const nx = c.position[0] + (dx / distance) * pullSpeed * delta
+            const nz = c.position[2] + (dz / distance) * pullSpeed * delta
+            return { ...c, position: [nx, c.position[1], nz] }
+          })
+        )
+      }
     })
   })
+
   return null
 }
 
@@ -116,6 +135,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
+  const magnetUntilRef = useRef(0)
 
   function handleCollect(id) {
     const collected = coins.find((c) => c.id === id)
@@ -125,6 +145,9 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
       return next
     })
     if (onScoreChange) onScoreChange((prevScore) => prevScore + (collected?.value || 1))
+    if (collected?.type === 'star') {
+      magnetUntilRef.current = performance.now() + 5000
+    }
   }
 
   function triggerShake() {
@@ -154,7 +177,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
         onPositionChange={onPositionChange}
       />
       <CameraRig target={characterRef} shakeRef={shakeUntilRef} />
-      <CoinManager characterRef={characterRef} coins={coins} onCollect={handleCollect} />
+      <CoinManager characterRef={characterRef} coins={coins} setCoins={setCoins} onCollect={handleCollect} magnetUntilRef={magnetUntilRef} />
       <ObstacleManager characterRef={characterRef} />
       <PondZone characterRef={characterRef} onInPond={onInPond} />
       <Dust characterRef={characterRef} />
