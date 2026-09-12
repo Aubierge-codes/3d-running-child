@@ -18,7 +18,7 @@ function App() {
   })
   const [coinsLeft, setCoinsLeft] = useState(6)
   const [resetSignal, setResetSignal] = useState(0)
-  const [isNight, setIsNight] = useState(false)
+const [timeOfDay, setTimeOfDay] = useState(12)
   const [isRaining, setIsRaining] = useState(false)
   const [paused, setPaused] = useState(false)
   const [baseSpeed, setBaseSpeed] = useState(3)
@@ -130,7 +130,12 @@ function App() {
 
       <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', gap: '8px' }}>
         <button onClick={() => setResetSignal((n) => n + 1)}>Respawn</button>
-        <button onClick={() => setIsNight((n) => !n)}>{isNight ? 'Day' : 'Night'}</button>
+        <div style={{ position: 'absolute', bottom: 60, right: 20, color: 'white', fontFamily: 'sans-serif' }}>
+  <label style={{ display: 'block', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
+    Time: {Math.floor(timeOfDay)}:00
+  </label>
+  <input type="range" min="0" max="24" step="0.25" value={timeOfDay} onChange={(e) => setTimeOfDay(Number(e.target.value))} />
+</div>
         <button onClick={() => setIsRaining((r) => !r)}>{isRaining ? 'Stop Rain' : 'Rain'}</button>
       </div>
 

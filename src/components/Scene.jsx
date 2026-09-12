@@ -18,6 +18,38 @@ import Fireflies from './Fireflies'
 import Rain from './Rain'
 import SprintTrail from './SprintTrail'
 
+function getTimeOfDayValues(timeOfDay) {
+  const t = timeOfDay / 24
+  const angle = t * Math.PI * 2 - Math.PI / 2
+
+  const sunHeight = Math.sin(angle)
+  const sunX = Math.cos(angle) * 100
+  const sunY = sunHeight * 60
+  const sunZ = 50
+
+  const brightness = Math.max(0, sunHeight)
+  const lightIntensity = 0.15 + brightness * 0.85
+  const ambientIntensity = 0.1 + brightness * 0.4
+
+  const dayColor = { r: 168, g: 200, b: 224 }
+  const nightColor = { r: 10, g: 16, b: 48 }
+  const mix = brightness
+  const fogColor = `rgb(${Math.round(nightColor.r + (dayColor.r - nightColor.r) * mix)}, ${Math.round(nightColor.g + (dayColor.g - nightColor.g) * mix)}, ${Math.round(nightColor.b + (dayColor.b - nightColor.b) * mix)})`
+
+  const groundDay = { r: 0, g: 128, b: 0 }
+  const groundNight = { r: 26, g: 58, b: 26 }
+  const groundColor = `rgb(${Math.round(groundNight.r + (groundDay.r - groundNight.r) * mix)}, ${Math.round(groundNight.g + (groundDay.g - groundNight.g) * mix)}, ${Math.round(groundNight.b + (groundDay.b - groundNight.b) * mix)})`
+
+  return {
+    sunPosition: [sunX, Math.max(sunY, -20), sunZ],
+    lightIntensity,
+    ambientIntensity,
+    fogColor,
+    groundColor,
+    isNightTime: brightness < 0.15,
+  }
+}
+
 function CameraRig({ target, shakeRef }) {
   const controlsRef = useRef()
 
@@ -132,11 +164,13 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
   const magnetUntilRef = useRef(0)
+
+  const tod = getTimeOfDayValues(timeOfDay)
 
   function handleCollect(id) {
     const collected = coins.find((c) => c.id === id)
@@ -163,10 +197,10 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
 
   return (
     <Canvas camera={{ position: [3, 3, 5], fov: 50 }}>
-      <ambientLight intensity={isNight ? 0.15 : 0.5} />
-      <directionalLight position={[5, 5, 5]} intensity={isNight ? 0.15 : 1} />
-      <fog attach="fog" args={[isNight ? '#0a1030' : '#a8c8e0', 30, 150]} />
-      <Sky sunPosition={isNight ? [0, -10, 0] : [100, 20, 100]} turbidity={2} rayleigh={1} />
+      <ambientLight intensity={tod.ambientIntensity} />
+      <directionalLight position={[5, 5, 5]} intensity={tod.lightIntensity} />
+      <fog attach="fog" args={[tod.fogColor, 30, 150]} />
+      <Sky sunPosition={tod.sunPosition} turbidity={2} rayleigh={1} />
 
       <Character
         characterRef={characterRef}
@@ -183,7 +217,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
       <PondZone characterRef={characterRef} onInPond={onInPond} />
       <Dust characterRef={characterRef} />
       <SprintTrail characterRef={characterRef} />
-      {isNight && <Fireflies />}
+      {tod.isNightTime && <Fireflies />}
       {isRaining && <Rain />}
 
       <SoilPatches />
@@ -205,7 +239,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, isNight, isRaini
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color={isNight ? '#1a3a1a' : 'green'} roughness={1} />
+        <meshStandardMaterial color={tod.groundColor} roughness={1} />
       </mesh>
     </Canvas>
   )
