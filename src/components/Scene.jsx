@@ -18,6 +18,8 @@ import Fireflies from './Fireflies'
 import Rain from './Rain'
 import SprintTrail from './SprintTrail'
 
+const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
+
 function getTimeOfDayValues(timeOfDay) {
   const t = timeOfDay / 24
   const angle = t * Math.PI * 2 - Math.PI / 2
@@ -169,8 +171,13 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
   const magnetUntilRef = useRef(0)
+  const coinAudioRef = useRef(null)
 
   const tod = getTimeOfDayValues(timeOfDay)
+
+  useEffect(() => {
+    coinAudioRef.current = new Audio(COIN_SOUND_DATA)
+  }, [])
 
   function handleCollect(id) {
     const collected = coins.find((c) => c.id === id)
@@ -182,6 +189,11 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
     if (onScoreChange) onScoreChange((prevScore) => prevScore + (collected?.value || 1))
     if (collected?.type === 'star') {
       magnetUntilRef.current = performance.now() + 5000
+    }
+    if (coinAudioRef.current) {
+      const sound = coinAudioRef.current.cloneNode()
+      sound.volume = 0.4
+      sound.play().catch(() => {})
     }
   }
 
