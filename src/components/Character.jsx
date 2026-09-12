@@ -29,6 +29,12 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
   const headBoneRef = useRef(null)
   const idleLookTimer = useRef(2)
   const idleLookTarget = useRef(0)
+  const footstepTimer = useRef(0)
+  const audioRef = useRef(null)
+
+  useEffect(() => {
+    audioRef.current = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=')
+  }, [])
 
   useEffect(() => {
     activeAction.current = actions['Idle']
@@ -86,8 +92,20 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
       characterRef.current.position.z += (moveZ / length) * speed * delta
       targetRotation.current = Math.atan2(-moveX, -moveZ) + Math.PI
       fadeToAction('Run')
+
+      footstepTimer.current += delta
+      const stepInterval = sprint ? 0.22 : 0.35
+      if (footstepTimer.current > stepInterval) {
+        footstepTimer.current = 0
+        if (audioRef.current) {
+          const sound = audioRef.current.cloneNode()
+          sound.volume = 0.15
+          sound.play().catch(() => {})
+        }
+      }
     } else {
       fadeToAction('Idle')
+      footstepTimer.current = 0
     }
 
     const diff = shortestAngleDiff(targetRotation.current, characterRef.current.rotation.y)
