@@ -11,21 +11,28 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+function loadSetting(key, fallback) {
+  const saved = localStorage.getItem(key)
+  if (saved === null) return fallback
+  try {
+    return JSON.parse(saved)
+  } catch {
+    return fallback
+  }
+}
+
 const WORLD_SIZE = 200
 const MAP_SIZE = 120
 
 function App() {
   const [score, setScore] = useState(0)
-  const [highScore, setHighScore] = useState(() => {
-    const saved = localStorage.getItem('highScore')
-    return saved ? Number(saved) : 0
-  })
+  const [highScore, setHighScore] = useState(() => loadSetting('highScore', 0))
   const [coinsLeft, setCoinsLeft] = useState(6)
   const [resetSignal, setResetSignal] = useState(0)
   const [timeOfDay, setTimeOfDay] = useState(12)
   const [isRaining, setIsRaining] = useState(false)
   const [paused, setPaused] = useState(false)
-  const [baseSpeed, setBaseSpeed] = useState(3)
+  const [baseSpeed, setBaseSpeed] = useState(() => loadSetting('baseSpeed', 3))
   const [speed, setSpeed] = useState(0)
   const [facing, setFacing] = useState(0)
   const [inPond, setInPond] = useState(false)
@@ -33,10 +40,10 @@ function App() {
   const [position, setPosition] = useState({ x: 0, z: 0 })
   const [toasts, setToasts] = useState([])
   const [showSettings, setShowSettings] = useState(false)
-  const [dustEnabled, setDustEnabled] = useState(true)
-  const [shakeEnabled, setShakeEnabled] = useState(true)
-  const [fogEnabled, setFogEnabled] = useState(true)
-  const [musicOn, setMusicOn] = useState(false)
+  const [dustEnabled, setDustEnabled] = useState(() => loadSetting('dustEnabled', true))
+  const [shakeEnabled, setShakeEnabled] = useState(() => loadSetting('shakeEnabled', true))
+  const [fogEnabled, setFogEnabled] = useState(() => loadSetting('fogEnabled', true))
+  const [musicOn, setMusicOn] = useState(() => loadSetting('musicOn', false))
   const [fps, setFps] = useState(60)
   const [streak, setStreak] = useState(0)
   const hasShownFirstCoin = useRef(false)
@@ -52,6 +59,26 @@ function App() {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 3000)
   }
+
+  useEffect(() => {
+    localStorage.setItem('baseSpeed', JSON.stringify(baseSpeed))
+  }, [baseSpeed])
+
+  useEffect(() => {
+    localStorage.setItem('dustEnabled', JSON.stringify(dustEnabled))
+  }, [dustEnabled])
+
+  useEffect(() => {
+    localStorage.setItem('shakeEnabled', JSON.stringify(shakeEnabled))
+  }, [shakeEnabled])
+
+  useEffect(() => {
+    localStorage.setItem('fogEnabled', JSON.stringify(fogEnabled))
+  }, [fogEnabled])
+
+  useEffect(() => {
+    localStorage.setItem('musicOn', JSON.stringify(musicOn))
+  }, [musicOn])
 
   useEffect(() => {
     musicRef.current = new Audio(MUSIC_DATA)
@@ -96,7 +123,7 @@ function App() {
   useEffect(() => {
     if (score > highScore) {
       setHighScore(score)
-      localStorage.setItem('highScore', String(score))
+      localStorage.setItem('highScore', JSON.stringify(score))
       if (!hasShownHighScore.current && score > 0) {
         hasShownHighScore.current = true
         showToast('🏆 New high score!')
