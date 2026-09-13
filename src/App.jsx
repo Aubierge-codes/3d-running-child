@@ -37,6 +37,7 @@ function App() {
   const [fogEnabled, setFogEnabled] = useState(true)
   const [musicOn, setMusicOn] = useState(false)
   const [fps, setFps] = useState(60)
+  const [streak, setStreak] = useState(0)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
   const musicRef = useRef(null)
@@ -130,6 +131,7 @@ function App() {
         shakeEnabled={shakeEnabled}
         fogEnabled={fogEnabled}
         onFpsChange={setFps}
+        onStreakChange={setStreak}
       />
 
       {active && (
@@ -148,6 +150,7 @@ function App() {
 
       <div style={{ position: 'absolute', top: 20, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '28px', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
         🪙 {score} <span style={{ fontSize: '16px', opacity: 0.8 }}>(best: {highScore})</span>
+        {streak > 1 && <span style={{ fontSize: '18px', color: '#ffd54f', marginLeft: '10px' }}>🔥 x{streak}</span>}
       </div>
 
       <div style={{ position: 'absolute', top: 60, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '16px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>

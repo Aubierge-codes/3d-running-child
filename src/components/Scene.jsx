@@ -19,6 +19,7 @@ import Rain from './Rain'
 import SprintTrail from './SprintTrail'
 
 const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
+const COMBO_WINDOW_MS = 2000
 
 function getTimeOfDayValues(timeOfDay) {
   const t = timeOfDay / 24
@@ -184,12 +185,14 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange, onStreakChange }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
   const magnetUntilRef = useRef(0)
   const coinAudioRef = useRef(null)
+  const lastCollectTime = useRef(0)
+  const streakCount = useRef(0)
 
   const tod = getTimeOfDayValues(timeOfDay)
 
@@ -199,12 +202,24 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
 
   function handleCollect(id) {
     const collected = coins.find((c) => c.id === id)
+    const now = performance.now()
+
+    if (now - lastCollectTime.current < COMBO_WINDOW_MS) {
+      streakCount.current += 1
+    } else {
+      streakCount.current = 1
+    }
+    lastCollectTime.current = now
+    if (onStreakChange) onStreakChange(streakCount.current)
+
+    const comboBonus = streakCount.current >= 3 ? Math.floor(streakCount.current / 3) : 0
+
     setCoins((prev) => {
       const next = prev.filter((coin) => coin.id !== id)
       if (onCoinsLeftChange) onCoinsLeftChange(next.length)
       return next
     })
-    if (onScoreChange) onScoreChange((prevScore) => prevScore + (collected?.value || 1))
+    if (onScoreChange) onScoreChange((prevScore) => prevScore + (collected?.value || 1) + comboBonus)
     if (collected?.type === 'star') {
       magnetUntilRef.current = performance.now() + 5000
     }
@@ -223,6 +238,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
     if (resetSignal > 0 && characterRef.current) {
       characterRef.current.position.set(0, 0, 0)
       setCoins(initialCoins)
+      streakCount.current = 0
       if (onCoinsLeftChange) onCoinsLeftChange(initialCoins.length)
       if (onScoreReset) onScoreReset()
     }
