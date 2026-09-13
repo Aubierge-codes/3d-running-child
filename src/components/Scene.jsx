@@ -184,7 +184,7 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
@@ -222,6 +222,9 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, timeOfDay, isRai
   useEffect(() => {
     if (resetSignal > 0 && characterRef.current) {
       characterRef.current.position.set(0, 0, 0)
+      setCoins(initialCoins)
+      if (onCoinsLeftChange) onCoinsLeftChange(initialCoins.length)
+      if (onScoreReset) onScoreReset()
     }
   }, [resetSignal])
 

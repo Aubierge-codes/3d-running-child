@@ -102,7 +102,10 @@ function App() {
 
   function handleCoinsLeftChange(count) {
     setCoinsLeft(count)
-    if (count === 0) showToast('🎉 All coins collected!')
+  }
+
+  function handlePlayAgain() {
+    setResetSignal((n) => n + 1)
   }
 
   const dotX = (position.x / WORLD_SIZE) * MAP_SIZE + MAP_SIZE / 2
@@ -114,6 +117,7 @@ function App() {
         onScoreChange={handleScoreChange}
         onCoinsLeftChange={handleCoinsLeftChange}
         resetSignal={resetSignal}
+        onScoreReset={() => setScore(0)}
         timeOfDay={timeOfDay}
         isRaining={isRaining}
         paused={paused}
@@ -223,6 +227,25 @@ function App() {
           </div>
         ))}
       </div>
+
+      {coinsLeft === 0 && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: 'sans-serif',
+        }}>
+          <div style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '12px', textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>
+            🎉 Level Complete!
+          </div>
+          <div style={{ fontSize: '20px', marginBottom: '24px' }}>Final score: {score}</div>
+          <button
+            onClick={handlePlayAgain}
+            style={{ padding: '10px 24px', fontSize: '18px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#4ade80', fontWeight: 'bold' }}
+          >
+            Play Again
+          </button>
+        </div>
+      )}
 
       {paused && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '48px', fontFamily: 'sans-serif', fontWeight: 'bold' }}>
