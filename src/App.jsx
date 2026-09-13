@@ -21,6 +21,13 @@ function loadSetting(key, fallback) {
   }
 }
 
+function getNightIntensity(timeOfDay) {
+  const t = timeOfDay / 24
+  const angle = t * Math.PI * 2 - Math.PI / 2
+  const brightness = Math.max(0, Math.sin(angle))
+  return 1 - brightness
+}
+
 const WORLD_SIZE = 200
 const MAP_SIZE = 120
 
@@ -152,6 +159,7 @@ function App() {
 
   const dotX = (position.x / WORLD_SIZE) * MAP_SIZE + MAP_SIZE / 2
   const dotZ = (position.z / WORLD_SIZE) * MAP_SIZE + MAP_SIZE / 2
+  const nightIntensity = getNightIntensity(timeOfDay)
 
   return (
     <>
@@ -174,6 +182,12 @@ function App() {
         onFpsChange={setFps}
         onStreakChange={setStreak}
       />
+
+      <div style={{
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+        pointerEvents: 'none',
+        background: `radial-gradient(circle, transparent 40%, rgba(0,0,10,${nightIntensity * 0.55}) 100%)`,
+      }} />
 
       {active && (
         <div style={{
