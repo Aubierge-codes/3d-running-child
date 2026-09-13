@@ -18,6 +18,7 @@ import Fireflies from './Fireflies'
 import Rain from './Rain'
 import SprintTrail from './SprintTrail'
 import Bridge from './Bridge'
+import Villagers from './Villager'
 
 const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const COMBO_WINDOW_MS = 2000
@@ -289,6 +290,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <SoilPatches />
       <Mountains />
       <Village />
+      <Villagers />
       <Fence />
       <Clouds />
       <Birds />
