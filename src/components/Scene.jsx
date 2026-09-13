@@ -17,6 +17,7 @@ import Dust from './Dust'
 import Fireflies from './Fireflies'
 import Rain from './Rain'
 import SprintTrail from './SprintTrail'
+import Bridge from './Bridge'
 
 const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const COMBO_WINDOW_MS = 2000
@@ -292,8 +293,9 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <Clouds />
       <Birds />
       <Trees />
-      <Pond />
       <Flora />
+      <Pond />
+      <Bridge />
       <Butterflies />
 
       {coins.map((coin) => (
