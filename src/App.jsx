@@ -3,6 +3,7 @@ import { useProgress } from '@react-three/drei'
 import Scene from './components/Scene'
 
 const MUSIC_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
+const WIND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60)
@@ -41,6 +42,7 @@ function App() {
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
   const musicRef = useRef(null)
+  const windRef = useRef(null)
   const { progress, active } = useProgress()
 
   function showToast(message) {
@@ -55,7 +57,19 @@ function App() {
     musicRef.current = new Audio(MUSIC_DATA)
     musicRef.current.loop = true
     musicRef.current.volume = 0.3
+
+    windRef.current = new Audio(WIND_DATA)
+    windRef.current.loop = true
+    windRef.current.volume = 0.1
+    windRef.current.play().catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (!windRef.current) return
+    const distFromNoon = Math.abs(timeOfDay - 12)
+    const windStrength = Math.min(distFromNoon / 12, 1)
+    windRef.current.volume = 0.05 + windStrength * 0.2
+  }, [timeOfDay])
 
   useEffect(() => {
     if (!musicRef.current) return
