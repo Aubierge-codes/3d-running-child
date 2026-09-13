@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useProgress } from '@react-three/drei'
 import Scene from './components/Scene'
+import TouchJoystick from './components/TouchJoystick'
 
 const MUSIC_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const WIND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
@@ -32,6 +33,7 @@ const WORLD_SIZE = 200
 const MAP_SIZE = 120
 
 function App() {
+  const [isTouchDevice] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0)
   const [score, setScore] = useState(0)
   const [highScore, setHighScore] = useState(() => loadSetting('highScore', 0))
   const [coinsLeft, setCoinsLeft] = useState(6)
