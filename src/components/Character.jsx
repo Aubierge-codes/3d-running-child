@@ -5,6 +5,7 @@ import { useKeyboardControls } from '../hooks/useKeyboardControls'
 
 const GRAVITY = 20
 const JUMP_STRENGTH = 7
+const SQUASH_DURATION = 0.25
 
 function shortestAngleDiff(target, current) {
   const twoPi = Math.PI * 2
@@ -31,6 +32,8 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
   const idleLookTarget = useRef(0)
   const footstepTimer = useRef(0)
   const audioRef = useRef(null)
+  const squashTimer = useRef(SQUASH_DURATION)
+  const baseScale = useRef(1)
 
   useEffect(() => {
     audioRef.current = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=')
@@ -40,6 +43,12 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
     activeAction.current = actions['Idle']
     activeAction.current.reset().play()
   }, [actions])
+
+  useEffect(() => {
+    if (characterRef.current) {
+      baseScale.current = characterRef.current.scale.x
+    }
+  }, [characterRef])
 
   useEffect(() => {
     const colorOverrides = {
@@ -53,6 +62,9 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
           child.material.roughness = 0.85
           child.material.metalness = 0
         }
+      }
+      if (child.isMesh) {
+        child.castShadow = true
       }
     })
 
@@ -124,11 +136,25 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
     characterRef.current.position.y += verticalVelocity.current * delta
 
     if (characterRef.current.position.y <= 0) {
-      if (!isGrounded.current && onLand) onLand()
+      if (!isGrounded.current) {
+        if (onLand) onLand()
+        squashTimer.current = 0
+      }
       characterRef.current.position.y = 0
       verticalVelocity.current = 0
       isGrounded.current = true
       jumpsUsed.current = 0
+    }
+
+    if (squashTimer.current < SQUASH_DURATION) {
+      squashTimer.current += delta
+      const t = Math.min(squashTimer.current / SQUASH_DURATION, 1)
+      const squashAmount = Math.sin(t * Math.PI) * 0.15
+      const s = baseScale.current
+      characterRef.current.scale.set(s * (1 + squashAmount), s * (1 - squashAmount), s * (1 + squashAmount))
+    } else {
+      const s = baseScale.current
+      characterRef.current.scale.set(s, s, s)
     }
 
     if (headBoneRef.current) {
