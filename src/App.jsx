@@ -56,6 +56,7 @@ function App() {
   const [fps, setFps] = useState(60)
   const [streak, setStreak] = useState(0)
   const [isTouchDevice] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
   const musicRef = useRef(null)
@@ -69,6 +70,22 @@ function App() {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 3000)
   }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {})
+    } else {
+      document.exitFullscreen().catch(() => {})
+    }
+  }
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('baseSpeed', JSON.stringify(baseSpeed))
@@ -247,6 +264,7 @@ function App() {
         <button onClick={() => setIsRaining((r) => !r)}>{isRaining ? 'Stop Rain' : 'Rain'}</button>
         <button onClick={() => setMusicOn((m) => !m)}>{musicOn ? '🔊 Music On' : '🔇 Music Off'}</button>
         <button onClick={() => setScreenshotSignal((n) => n + 1)}>📸 Screenshot</button>
+        <button onClick={toggleFullscreen}>{isFullscreen ? '🡼 Exit Fullscreen' : '⛶ Fullscreen'}</button>
         <button onClick={() => setShowSettings((s) => !s)}>⚙️ Settings</button>
       </div>
 
