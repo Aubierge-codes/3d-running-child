@@ -33,11 +33,11 @@ const WORLD_SIZE = 200
 const MAP_SIZE = 120
 
 function App() {
-  const [isTouchDevice] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0)
   const [score, setScore] = useState(0)
   const [highScore, setHighScore] = useState(() => loadSetting('highScore', 0))
   const [coinsLeft, setCoinsLeft] = useState(6)
   const [resetSignal, setResetSignal] = useState(0)
+  const [screenshotSignal, setScreenshotSignal] = useState(0)
   const [timeOfDay, setTimeOfDay] = useState(12)
   const [isRaining, setIsRaining] = useState(false)
   const [paused, setPaused] = useState(false)
@@ -55,6 +55,7 @@ function App() {
   const [musicOn, setMusicOn] = useState(() => loadSetting('musicOn', false))
   const [fps, setFps] = useState(60)
   const [streak, setStreak] = useState(0)
+  const [isTouchDevice] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
   const musicRef = useRef(null)
@@ -183,6 +184,7 @@ function App() {
         fogEnabled={fogEnabled}
         onFpsChange={setFps}
         onStreakChange={setStreak}
+        screenshotSignal={screenshotSignal}
       />
 
       <div style={{
@@ -244,6 +246,7 @@ function App() {
         <button onClick={() => setResetSignal((n) => n + 1)}>Respawn</button>
         <button onClick={() => setIsRaining((r) => !r)}>{isRaining ? 'Stop Rain' : 'Rain'}</button>
         <button onClick={() => setMusicOn((m) => !m)}>{musicOn ? '🔊 Music On' : '🔇 Music Off'}</button>
+        <button onClick={() => setScreenshotSignal((n) => n + 1)}>📸 Screenshot</button>
         <button onClick={() => setShowSettings((s) => !s)}>⚙️ Settings</button>
       </div>
 
@@ -316,6 +319,8 @@ function App() {
       {inPond && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(50,120,200,0.25)', pointerEvents: 'none' }} />
       )}
+
+      {isTouchDevice && <TouchJoystick />}
     </>
   )
 }

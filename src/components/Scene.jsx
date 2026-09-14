@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, Suspense } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Sky, OrbitControls } from '@react-three/drei'
 import Character from './Character'
 import Coin from './Coin'
@@ -67,6 +67,25 @@ function FPSCounter({ onFpsChange }) {
     if (reportTimer.current > 0.3) {
       reportTimer.current = 0
       if (onFpsChange) onFpsChange(Math.round(smoothedFps.current))
+    }
+  })
+
+  return null
+}
+
+function ScreenshotHandler({ screenshotSignal }) {
+  const { gl, scene, camera } = useThree()
+  const lastSignal = useRef(0)
+
+  useFrame(() => {
+    if (screenshotSignal > lastSignal.current) {
+      lastSignal.current = screenshotSignal
+      gl.render(scene, camera)
+      const dataUrl = gl.domElement.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `screenshot-${Date.now()}.png`
+      link.click()
     }
   })
 
@@ -187,7 +206,7 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange, onStreakChange }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange, onStreakChange, screenshotSignal }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
@@ -266,6 +285,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <Sky sunPosition={tod.sunPosition} turbidity={2} rayleigh={1} />
 
       <FPSCounter onFpsChange={onFpsChange} />
+      <ScreenshotHandler screenshotSignal={screenshotSignal} />
 
       <Suspense fallback={null}>
         <Character
@@ -290,14 +310,14 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <SoilPatches />
       <Mountains />
       <Village />
-      <Villagers />
       <Fence />
+      <Villagers />
       <Clouds />
       <Birds />
       <Trees />
-      <Flora />
       <Pond />
       <Bridge />
+      <Flora />
       <Butterflies />
 
       {coins.map((coin) => (
