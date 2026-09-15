@@ -20,6 +20,7 @@ import SprintTrail from './SprintTrail'
 import Bridge from './Bridge'
 import Villagers from './Villager'
 import Leaves from './Leaves'
+import Sparkles from './Sparkles'
 
 const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const COMBO_WINDOW_MS = 2000
@@ -139,7 +140,7 @@ function CoinManager({ characterRef, coins, setCoins, onCollect, magnetUntilRef 
       const distance = Math.sqrt(dx * dx + dz * dz)
 
       if (distance < 1) {
-        onCollect(coin.id)
+        onCollect(coin.id, coin.position)
         return
       }
 
@@ -222,6 +223,8 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
   const coinAudioRef = useRef(null)
   const lastCollectTime = useRef(0)
   const streakCount = useRef(0)
+  const sparkleBurstsRef = useRef([])
+  const nextBurstId = useRef(1)
 
   const tod = getTimeOfDayValues(timeOfDay)
 
@@ -229,7 +232,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
     coinAudioRef.current = new Audio(COIN_SOUND_DATA)
   }, [])
 
-  function handleCollect(id) {
+  function handleCollect(id, coinPosition) {
     const collected = coins.find((c) => c.id === id)
     const now = performance.now()
 
@@ -242,6 +245,13 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
     if (onStreakChange) onStreakChange(streakCount.current)
 
     const comboBonus = streakCount.current >= 3 ? Math.floor(streakCount.current / 3) : 0
+
+    if (coinPosition) {
+      sparkleBurstsRef.current = [
+        ...sparkleBurstsRef.current.slice(-10),
+        { id: nextBurstId.current++, x: coinPosition[0], y: coinPosition[1], z: coinPosition[2] },
+      ]
+    }
 
     setCoins((prev) => {
       const next = prev.filter((coin) => coin.id !== id)
@@ -312,6 +322,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <PondZone characterRef={characterRef} onInPond={onInPond} />
       {dustEnabled && <Dust characterRef={characterRef} />}
       <SprintTrail characterRef={characterRef} />
+      <Sparkles burstsRef={sparkleBurstsRef} />
       {tod.isNightTime && <Fireflies />}
       {isRaining && <Rain />}
 
