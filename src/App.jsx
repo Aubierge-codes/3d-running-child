@@ -57,6 +57,7 @@ function App() {
   const [streak, setStreak] = useState(0)
   const [isTouchDevice] = useState(() => 'ontouchstart' in window || navigator.maxTouchPoints > 0)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [zoomDistance, setZoomDistance] = useState(5)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
   const musicRef = useRef(null)
@@ -202,6 +203,7 @@ function App() {
         onFpsChange={setFps}
         onStreakChange={setStreak}
         screenshotSignal={screenshotSignal}
+        onZoomChange={setZoomDistance}
       />
 
       <div style={{
@@ -239,6 +241,10 @@ function App() {
 
       <div style={{ position: 'absolute', top: 120, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none', opacity: 0.8 }}>
         {fps} FPS
+      </div>
+
+      <div style={{ position: 'absolute', top: 145, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none', opacity: 0.8 }}>
+        Zoom: {zoomDistance.toFixed(1)}
       </div>
 
       <div style={{ position: 'absolute', top: 60, left: 160, width: 24, height: 24, pointerEvents: 'none', transform: `rotate(${facing}rad)` }}>

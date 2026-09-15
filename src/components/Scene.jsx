@@ -92,10 +92,11 @@ function ScreenshotHandler({ screenshotSignal }) {
   return null
 }
 
-function CameraRig({ target, shakeRef }) {
+function CameraRig({ target, shakeRef, onZoomChange }) {
   const controlsRef = useRef()
+  const zoomReportTimer = useRef(0)
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (!target.current || !controlsRef.current) return
     controlsRef.current.target.copy(target.current.position)
     controlsRef.current.update()
@@ -103,6 +104,12 @@ function CameraRig({ target, shakeRef }) {
     if (shakeRef && shakeRef.current > performance.now()) {
       state.camera.position.x += (Math.random() - 0.5) * 0.1
       state.camera.position.y += (Math.random() - 0.5) * 0.1
+    }
+
+    zoomReportTimer.current += delta
+    if (zoomReportTimer.current > 0.2) {
+      zoomReportTimer.current = 0
+      if (onZoomChange) onZoomChange(controlsRef.current.getDistance())
     }
   })
 
@@ -206,7 +213,7 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange, onStreakChange, screenshotSignal }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange, onStreakChange, screenshotSignal, onZoomChange }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
@@ -298,7 +305,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
           onPositionChange={onPositionChange}
         />
       </Suspense>
-      <CameraRig target={characterRef} shakeRef={shakeUntilRef} />
+      <CameraRig target={characterRef} shakeRef={shakeUntilRef} onZoomChange={onZoomChange} />
       <CoinManager characterRef={characterRef} coins={coins} setCoins={setCoins} onCollect={handleCollect} magnetUntilRef={magnetUntilRef} />
       <ObstacleManager characterRef={characterRef} />
       <PondZone characterRef={characterRef} onInPond={onInPond} />
