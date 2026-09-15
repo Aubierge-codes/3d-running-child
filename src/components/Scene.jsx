@@ -24,6 +24,7 @@ import Sparkles from './Sparkles'
 
 const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const COMBO_WINDOW_MS = 2000
+const AUTO_FOLLOW_DELAY_MS = 1200
 
 function getTimeOfDayValues(timeOfDay) {
   const t = timeOfDay / 24
@@ -97,21 +98,76 @@ function ScreenshotHandler({ screenshotSignal }) {
 function CameraRig({ target, shakeRef, onZoomChange }) {
   const controlsRef = useRef()
   const zoomReportTimer = useRef(0)
+  const prevTargetPos = useRef(null)
+  const isDragging = useRef(false)
+  const lastDragEndTime = useRef(0)
+
+  useEffect(() => {
+    const controls = controlsRef.current
+    if (!controls) return
+    const handleStart = () => {
+      isDragging.current = true
+    }
+    const handleEnd = () => {
+      isDragging.current = false
+      lastDragEndTime.current = performance.now()
+    }
+    controls.addEventListener('start', handleStart)
+    controls.addEventListener('end', handleEnd)
+    return () => {
+      controls.removeEventListener('start', handleStart)
+      controls.removeEventListener('end', handleEnd)
+    }
+  }, [])
 
   useFrame((state, delta) => {
     if (!target.current || !controlsRef.current) return
-    controlsRef.current.target.copy(target.current.position)
-    controlsRef.current.update()
+    const controls = controlsRef.current
+    const camera = state.camera
+    const targetPos = target.current.position
+
+    controls.target.copy(targetPos)
+
+    if (!prevTargetPos.current) {
+      prevTargetPos.current = { x: targetPos.x, z: targetPos.z }
+    }
+    const vx = targetPos.x - prevTargetPos.current.x
+    const vz = targetPos.z - prevTargetPos.current.z
+    prevTargetPos.current = { x: targetPos.x, z: targetPos.z }
+    const moveDist = Math.sqrt(vx * vx + vz * vz)
+    const isMovingFast = moveDist > 0.002
+
+    const canAutoFollow = !isDragging.current && performance.now() - lastDragEndTime.current > AUTO_FOLLOW_DELAY_MS
+
+    if (canAutoFollow && isMovingFast) {
+      const dx = camera.position.x - targetPos.x
+      const dy = camera.position.y - targetPos.y
+      const dz = camera.position.z - targetPos.z
+      const r = Math.sqrt(dx * dx + dy * dy + dz * dz)
+      const p = Math.acos(Math.min(Math.max(dy / r, -1), 1))
+      const currentA = Math.atan2(dx, dz)
+      const desiredA = Math.atan2(-vx, -vz)
+
+      let diff = desiredA - currentA
+      diff = ((diff + Math.PI) % (Math.PI * 2)) - Math.PI
+      const newA = currentA + diff * 0.025
+
+      camera.position.x = targetPos.x + r * Math.sin(p) * Math.sin(newA)
+      camera.position.y = targetPos.y + r * Math.cos(p)
+      camera.position.z = targetPos.z + r * Math.sin(p) * Math.cos(newA)
+    }
+
+    controls.update()
 
     if (shakeRef && shakeRef.current > performance.now()) {
-      state.camera.position.x += (Math.random() - 0.5) * 0.1
-      state.camera.position.y += (Math.random() - 0.5) * 0.1
+      camera.position.x += (Math.random() - 0.5) * 0.1
+      camera.position.y += (Math.random() - 0.5) * 0.1
     }
 
     zoomReportTimer.current += delta
     if (zoomReportTimer.current > 0.2) {
       zoomReportTimer.current = 0
-      if (onZoomChange) onZoomChange(controlsRef.current.getDistance())
+      if (onZoomChange) onZoomChange(controls.getDistance())
     }
   })
 

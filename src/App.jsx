@@ -30,7 +30,28 @@ function getNightIntensity(timeOfDay) {
 }
 
 const WORLD_SIZE = 200
-const MAP_SIZE = 120
+const MAP_SIZE = 110
+
+const panel = {
+  background: 'rgba(18,22,18,0.55)',
+  backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)',
+  borderRadius: '14px',
+  border: '1px solid rgba(255,255,255,0.12)',
+  boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
+  color: 'white',
+  fontFamily: "'Segoe UI', sans-serif",
+}
+
+const button = {
+  ...panel,
+  padding: '9px 14px',
+  fontSize: '13px',
+  fontWeight: 600,
+  cursor: 'pointer',
+  border: '1px solid rgba(255,255,255,0.18)',
+  transition: 'background 0.15s',
+}
 
 function App() {
   const [score, setScore] = useState(0)
@@ -81,9 +102,7 @@ function App() {
   }
 
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-    }
+    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement)
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
   }, [])
@@ -226,90 +245,75 @@ function App() {
         </div>
       )}
 
-      <div style={{ position: 'absolute', top: 20, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '28px', fontWeight: 'bold', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
-        🪙 {score} <span style={{ fontSize: '16px', opacity: 0.8 }}>(best: {highScore})</span>
-        {streak > 1 && <span style={{ fontSize: '18px', color: '#ffd54f', marginLeft: '10px' }}>🔥 x{streak}</span>}
-      </div>
+      <div style={{ ...panel, position: 'absolute', top: 16, left: 16, padding: '14px 18px', minWidth: '190px', pointerEvents: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '24px', fontWeight: 700 }}>
+          🪙 {score}
+          {streak > 1 && <span style={{ fontSize: '15px', color: '#ffd54f' }}>🔥×{streak}</span>}
+        </div>
+        <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>Best: {highScore}</div>
 
-      <div style={{ position: 'absolute', top: 60, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '16px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
-        Speed: {speed.toFixed(1)} m/s
-      </div>
+        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', opacity: 0.9 }}>
+          <div>Speed: {speed.toFixed(1)} m/s</div>
+          <div>Zoom: {zoomDistance.toFixed(1)}</div>
+          <div>⏱ {formatTime(playTime)} &nbsp;·&nbsp; {fps} FPS</div>
+        </div>
 
-      <div style={{ position: 'absolute', top: 90, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '16px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none' }}>
-        ⏱ {formatTime(playTime)}
-      </div>
-
-      <div style={{ position: 'absolute', top: 120, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none', opacity: 0.8 }}>
-        {fps} FPS
-      </div>
-
-      <div style={{ position: 'absolute', top: 145, left: 20, color: 'white', fontFamily: 'sans-serif', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)', pointerEvents: 'none', opacity: 0.8 }}>
-        Zoom: {zoomDistance.toFixed(1)}
-      </div>
-
-      <div style={{ position: 'absolute', top: 60, left: 160, width: 24, height: 24, pointerEvents: 'none', transform: `rotate(${facing}rad)` }}>
-        <div style={{ width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderBottom: '16px solid white' }} />
+        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ width: 18, height: 18, transform: `rotate(${facing}rad)` }}>
+            <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '12px solid #4ade80' }} />
+          </div>
+          <span style={{ fontSize: '11px', opacity: 0.6 }}>facing</span>
+        </div>
       </div>
 
       <div style={{
-        position: 'absolute', bottom: 20, left: 20, width: MAP_SIZE, height: MAP_SIZE,
-        background: 'rgba(0,0,0,0.4)', border: '2px solid rgba(255,255,255,0.6)', borderRadius: '8px',
-        overflow: 'hidden', pointerEvents: 'none',
+        ...panel, position: 'absolute', bottom: 16, left: 16, width: MAP_SIZE, height: MAP_SIZE,
+        padding: 0, overflow: 'hidden', pointerEvents: 'none',
       }}>
         <div style={{
           position: 'absolute',
-          left: Math.min(Math.max(dotX, 4), MAP_SIZE - 4),
-          top: Math.min(Math.max(dotZ, 4), MAP_SIZE - 4),
+          left: Math.min(Math.max(dotX, 5), MAP_SIZE - 5),
+          top: Math.min(Math.max(dotZ, 5), MAP_SIZE - 5),
           width: 8, height: 8, borderRadius: '50%', background: '#ff5252',
+          boxShadow: '0 0 6px #ff5252',
           transform: 'translate(-50%, -50%)',
         }} />
       </div>
 
-      <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', gap: '8px' }}>
-        <button onClick={() => setResetSignal((n) => n + 1)}>Respawn</button>
-        <button onClick={() => setIsRaining((r) => !r)}>{isRaining ? 'Stop Rain' : 'Rain'}</button>
-        <button onClick={() => setMusicOn((m) => !m)}>{musicOn ? '🔊 Music On' : '🔇 Music Off'}</button>
-        <button onClick={() => setScreenshotSignal((n) => n + 1)}>📸 Screenshot</button>
-        <button onClick={toggleFullscreen}>{isFullscreen ? '🡼 Exit Fullscreen' : '⛶ Fullscreen'}</button>
-        <button onClick={() => setShowSettings((s) => !s)}>⚙️ Settings</button>
+      <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: '8px', flexWrap: 'wrap', maxWidth: '340px', justifyContent: 'flex-end' }}>
+        <button style={button} onClick={() => setResetSignal((n) => n + 1)}>↺ Respawn</button>
+        <button style={button} onClick={() => setIsRaining((r) => !r)}>{isRaining ? '☀ Stop Rain' : '🌧 Rain'}</button>
+        <button style={button} onClick={() => setMusicOn((m) => !m)}>{musicOn ? '🔊 Music' : '🔇 Music'}</button>
+        <button style={button} onClick={() => setScreenshotSignal((n) => n + 1)}>📸</button>
+        <button style={button} onClick={toggleFullscreen}>{isFullscreen ? '🡼' : '⛶'}</button>
+        <button style={button} onClick={() => setShowSettings((s) => !s)}>⚙️</button>
       </div>
 
       {showSettings && (
-        <div style={{
-          position: 'absolute', top: 60, right: 20, background: 'rgba(20,20,20,0.85)',
-          color: 'white', padding: '12px 16px', borderRadius: '8px', fontFamily: 'sans-serif', fontSize: '14px',
-        }}>
-          <label style={{ display: 'block', marginBottom: '6px' }}>
+        <div style={{ ...panel, position: 'absolute', top: 68, right: 16, padding: '14px 18px', fontSize: '14px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <input type="checkbox" checked={dustEnabled} onChange={(e) => setDustEnabled(e.target.checked)} /> Dust particles
           </label>
-          <label style={{ display: 'block', marginBottom: '6px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <input type="checkbox" checked={shakeEnabled} onChange={(e) => setShakeEnabled(e.target.checked)} /> Camera shake
           </label>
-          <label style={{ display: 'block' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input type="checkbox" checked={fogEnabled} onChange={(e) => setFogEnabled(e.target.checked)} /> Fog
           </label>
         </div>
       )}
 
-      <div style={{ position: 'absolute', bottom: 20, right: 20, color: 'white', fontFamily: 'sans-serif' }}>
-        <label style={{ display: 'block', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>Speed: {baseSpeed}</label>
-        <input type="range" min="1" max="8" step="0.5" value={baseSpeed} onChange={(e) => setBaseSpeed(Number(e.target.value))} />
+      <div style={{ ...panel, position: 'absolute', bottom: 16, right: 16, padding: '14px 18px', width: '200px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Speed: {baseSpeed}</label>
+        <input style={{ width: '100%' }} type="range" min="1" max="8" step="0.5" value={baseSpeed} onChange={(e) => setBaseSpeed(Number(e.target.value))} />
+
+        <label style={{ display: 'block', fontSize: '13px', margin: '12px 0 4px' }}>Time: {Math.floor(timeOfDay)}:00</label>
+        <input style={{ width: '100%' }} type="range" min="0" max="24" step="0.25" value={timeOfDay} onChange={(e) => setTimeOfDay(Number(e.target.value))} />
       </div>
 
-      <div style={{ position: 'absolute', bottom: 60, right: 20, color: 'white', fontFamily: 'sans-serif' }}>
-        <label style={{ display: 'block', fontSize: '14px', textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
-          Time: {Math.floor(timeOfDay)}:00
-        </label>
-        <input type="range" min="0" max="24" step="0.25" value={timeOfDay} onChange={(e) => setTimeOfDay(Number(e.target.value))} />
-      </div>
-
-      <div style={{ position: 'absolute', top: 100, right: 20, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+      <div style={{ position: 'absolute', top: 68, right: 16, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
         {toasts.map((toast) => (
-          <div key={toast.id} style={{
-            background: 'rgba(20,20,20,0.85)', color: 'white', padding: '10px 16px',
-            borderRadius: '8px', fontFamily: 'sans-serif', fontSize: '15px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-          }}>
+          <div key={toast.id} style={{ ...panel, padding: '10px 16px', fontSize: '14px' }}>
             {toast.message}
           </div>
         ))}
@@ -327,7 +331,7 @@ function App() {
           <div style={{ fontSize: '20px', marginBottom: '24px' }}>Final score: {score}</div>
           <button
             onClick={handlePlayAgain}
-            style={{ padding: '10px 24px', fontSize: '18px', borderRadius: '8px', border: 'none', cursor: 'pointer', background: '#4ade80', fontWeight: 'bold' }}
+            style={{ ...button, padding: '12px 28px', fontSize: '18px', background: '#4ade80', color: '#0a1a0a' }}
           >
             Play Again
           </button>
