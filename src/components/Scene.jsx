@@ -19,6 +19,7 @@ import Rain from './Rain'
 import SprintTrail from './SprintTrail'
 import Bridge from './Bridge'
 import Villagers from './Villager'
+import Leaves from './Leaves'
 
 const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const COMBO_WINDOW_MS = 2000
@@ -322,6 +323,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <Clouds />
       <Birds />
       <Trees />
+      <Leaves />
       <Pond />
       <Bridge />
       <Flora />
