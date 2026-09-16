@@ -8,6 +8,16 @@ import SoilPatches from './SoilPatches'
 import Mountains from './Mountains'
 import Trees, { treeColliders } from './Trees'
 import Village, { houseColliders, Fence, fenceColliders } from './Village'
+import Campfire from './Campfire'
+import Windmill, { windmillColliders } from './Windmill'
+import FishSchool from './Fish'
+import LampPosts, { lampColliders } from './LampPosts'
+import Stars from './Stars'
+import Flock from './Sheep'
+import Well, { wellColliders } from './Well'
+import CropField from './CropField'
+import Mushrooms from './Mushrooms'
+import Signposts, { signColliders } from './Signposts'
 import Waterfall, { waterfallColliders } from './Waterfall'
 import Treehouse, { treehouseColliders } from './Treehouse'
 import Scarecrow, { scarecrowColliders } from './Scarecrow'
@@ -60,6 +70,7 @@ function getTimeOfDayValues(timeOfDay) {
     fogColor,
     groundColor,
     isNightTime: brightness < 0.15,
+    nightIntensity: 1 - brightness,
   }
 }
 
@@ -253,10 +264,10 @@ const CHARACTER_RADIUS = 0.4
 
 function ObstacleManager({ characterRef }) {
   const allObstacles = [
-  ...obstacles, ...treeColliders, ...houseColliders, ...fenceColliders,
-  ...windmillColliders, ...lampColliders, ...wellColliders, ...signColliders,
-  ...waterfallColliders, ...treehouseColliders, ...scarecrowColliders,
-]
+    ...obstacles, ...treeColliders, ...houseColliders, ...fenceColliders,
+    ...windmillColliders, ...lampColliders, ...wellColliders, ...signColliders,
+    ...waterfallColliders, ...treehouseColliders, ...scarecrowColliders,
+  ]
 
   useFrame(() => {
     if (!characterRef.current) return
@@ -296,8 +307,6 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
   useEffect(() => {
     coinAudioRef.current = new Audio(COIN_SOUND_DATA)
   }, [])
-
-  
 
   function handleCollect(id, coinPosition) {
     const collected = coins.find((c) => c.id === id)
@@ -402,15 +411,27 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <Birds />
       <Trees />
       <Leaves />
+      <Pond />
+      <Bridge />
+      <Flora />
+      <Butterflies />
+
+      <Campfire />
+      <Windmill />
+      <FishSchool />
+      <LampPosts isNight={tod.isNightTime} />
+      <Stars nightIntensity={tod.nightIntensity} />
+      <Flock />
+      <Well />
+      <CropField />
+      <Mushrooms />
+      <Signposts />
+
       <Waterfall />
       <Treehouse />
       <Scarecrow />
       <HotAirBalloon />
       <Fireworks active={levelComplete} />
-      <Pond />
-      <Bridge />
-      <Flora />
-      <Butterflies />
 
       {coins.map((coin) => (
         <Coin key={coin.id} position={coin.position} type={coin.type} />
