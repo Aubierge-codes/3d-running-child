@@ -8,6 +8,11 @@ import SoilPatches from './SoilPatches'
 import Mountains from './Mountains'
 import Trees, { treeColliders } from './Trees'
 import Village, { houseColliders, Fence, fenceColliders } from './Village'
+import Waterfall, { waterfallColliders } from './Waterfall'
+import Treehouse, { treehouseColliders } from './Treehouse'
+import Scarecrow, { scarecrowColliders } from './Scarecrow'
+import HotAirBalloon from './HotAirBalloon'
+import Fireworks from './Fireworks'
 import Clouds from './Clouds'
 import Birds from './Birds'
 import Pond from './Pond'
@@ -247,7 +252,11 @@ const initialCoins = [
 const CHARACTER_RADIUS = 0.4
 
 function ObstacleManager({ characterRef }) {
-  const allObstacles = [...obstacles, ...treeColliders, ...houseColliders, ...fenceColliders]
+  const allObstacles = [
+  ...obstacles, ...treeColliders, ...houseColliders, ...fenceColliders,
+  ...windmillColliders, ...lampColliders, ...wellColliders, ...signColliders,
+  ...waterfallColliders, ...treehouseColliders, ...scarecrowColliders,
+]
 
   useFrame(() => {
     if (!characterRef.current) return
@@ -271,7 +280,7 @@ function ObstacleManager({ characterRef }) {
   return null
 }
 
-function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange, onStreakChange, screenshotSignal, onZoomChange }) {
+function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, timeOfDay, isRaining, paused, baseSpeed, onSpeedChange, onRotationChange, onPositionChange, onInPond, dustEnabled, shakeEnabled, fogEnabled, onFpsChange, onStreakChange, screenshotSignal, onZoomChange, levelComplete }) {
   const characterRef = useRef()
   const [coins, setCoins] = useState(initialCoins)
   const shakeUntilRef = useRef(0)
@@ -287,6 +296,8 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
   useEffect(() => {
     coinAudioRef.current = new Audio(COIN_SOUND_DATA)
   }, [])
+
+  
 
   function handleCollect(id, coinPosition) {
     const collected = coins.find((c) => c.id === id)
@@ -391,6 +402,11 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <Birds />
       <Trees />
       <Leaves />
+      <Waterfall />
+      <Treehouse />
+      <Scarecrow />
+      <HotAirBalloon />
+      <Fireworks active={levelComplete} />
       <Pond />
       <Bridge />
       <Flora />

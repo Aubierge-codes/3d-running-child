@@ -219,6 +219,7 @@ function App() {
         dustEnabled={dustEnabled}
         shakeEnabled={shakeEnabled}
         fogEnabled={fogEnabled}
+        levelComplete={coinsLeft === 0}
         onFpsChange={setFps}
         onStreakChange={setStreak}
         screenshotSignal={screenshotSignal}
