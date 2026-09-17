@@ -18,6 +18,11 @@ import Well, { wellColliders } from './Well'
 import CropField from './CropField'
 import Mushrooms from './Mushrooms'
 import Signposts, { signColliders } from './Signposts'
+import Barn, { barnColliders } from './Barn'
+import Beehive from './Beehive'
+import Chickens from './Chickens'
+import TireSwing from './TireSwing'
+import Dock from './Dock'
 import Waterfall, { waterfallColliders } from './Waterfall'
 import Treehouse, { treehouseColliders } from './Treehouse'
 import Scarecrow, { scarecrowColliders } from './Scarecrow'
@@ -267,6 +272,7 @@ function ObstacleManager({ characterRef }) {
     ...obstacles, ...treeColliders, ...houseColliders, ...fenceColliders,
     ...windmillColliders, ...lampColliders, ...wellColliders, ...signColliders,
     ...waterfallColliders, ...treehouseColliders, ...scarecrowColliders,
+    ...barnColliders,
   ]
 
   useFrame(() => {
@@ -426,6 +432,12 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <CropField />
       <Mushrooms />
       <Signposts />
+
+      <Barn />
+      <Beehive />
+      <Chickens />
+      <TireSwing />
+      <Dock />
 
       <Waterfall />
       <Treehouse />
