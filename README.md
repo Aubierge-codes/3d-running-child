@@ -1,16 +1,32 @@
-# React + Vite
+# My First 3D World
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A small 3D village you can explore in the browser: run, double-jump, collect coins, and change the time of day. Built with React, react-three-fiber and three.js, bundled with Vite.
 
-Currently, two official plugins are available:
+Works with a keyboard on desktop, and with on-screen touch controls on phones and tablets.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run it
 
-## React Compiler
+```bash
+npm install
+npm run dev       # dev server with hot reload
+npm run build     # production build into dist/
+npm run preview   # serve dist/ on http://localhost:4173
+npm run lint
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Controls
 
-## Expanding the ESLint configuration
+| Action | Keyboard | Touch |
+| --- | --- | --- |
+| Move | WASD / arrow keys | Left joystick |
+| Sprint | Hold Shift | SPRINT button (toggle) |
+| Jump / double jump | Space | JUMP button |
+| Rotate / zoom camera | Mouse drag / wheel | One-finger drag / pinch on the world |
+| Pause | Esc or ⏸ | ⏸, tap anywhere to resume |
+| Speed & time of day | Bottom-right sliders | ⚙️ settings sheet |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Collect all six coins to finish the level. The star coin is worth 5 and pulls nearby coins toward you for 5 seconds. Picking up three or more coins within 2 seconds of each other gives a combo bonus.
+
+## Documentation
+
+- [docs/DEBUGGING.md](docs/DEBUGGING.md) explains how the pieces connect, what to check when something breaks, and how to run the browser smoke test.
