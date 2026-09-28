@@ -1,12 +1,5 @@
-import { treeColliders } from './Trees'
-
-function seededRandom(seed) {
-  let value = seed
-  return function () {
-    value = (value * 9301 + 49297) % 233280
-    return value / 233280
-  }
-}
+import { treeColliders } from '../world/layout'
+import { seededRandom } from '../world/random'
 
 const capColors = ['#c94f4f', '#d98a3a', '#e8dcc0', '#9c6ad9']
 

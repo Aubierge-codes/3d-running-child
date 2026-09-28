@@ -1,3 +1,5 @@
+import { houseColliders, fenceColliders } from '../world/layout'
+
 function House({ position, rotationY = 0 }) {
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
@@ -12,14 +14,6 @@ function House({ position, rotationY = 0 }) {
     </group>
   )
 }
-
-export const houseColliders = [
-  { position: [20, 0, 15], rotationY: 0.3, radius: 1.8 },
-  { position: [24, 0, 18], rotationY: 1.1, radius: 1.8 },
-  { position: [18, 0, 20], rotationY: -0.4, radius: 1.8 },
-  { position: [-20, 0, -15], rotationY: 0.8, radius: 1.8 },
-  { position: [-24, 0, -18], rotationY: -1.0, radius: 1.8 },
-]
 
 function Village() {
   return (
@@ -40,23 +34,7 @@ function FencePost({ position }) {
   )
 }
 
-function generateFenceRing(center, radius, count) {
-  const posts = []
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2
-    const x = center[0] + Math.cos(angle) * radius
-    const z = center[2] + Math.sin(angle) * radius
-    posts.push({ position: [x, 0.5, z], radius: 0.3 })
-  }
-  return posts
-}
-
-export const fenceColliders = [
-  ...generateFenceRing([22, 0, 17], 6, 16),
-  ...generateFenceRing([-22, 0, -17], 6, 16),
-]
-
-function Fence() {
+export function Fence() {
   return (
     <>
       {fenceColliders.map((post, i) => (
@@ -65,7 +43,5 @@ function Fence() {
     </>
   )
 }
-
-export { Fence }
 
 export default Village

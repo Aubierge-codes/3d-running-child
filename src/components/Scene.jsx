@@ -1,31 +1,31 @@
-import { useRef, useState, useEffect, Suspense } from 'react'
+import { memo, useRef, useState, useEffect, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Sky, OrbitControls } from '@react-three/drei'
 import Character from './Character'
 import Coin from './Coin'
-import Landmarks, { obstacles } from './Landmarks'
+import Landmarks from './Landmarks'
 import SoilPatches from './SoilPatches'
 import Mountains from './Mountains'
-import Trees, { treeColliders } from './Trees'
-import Village, { houseColliders, Fence, fenceColliders } from './Village'
+import Trees from './Trees'
+import Village, { Fence } from './Village'
 import Campfire from './Campfire'
-import Windmill, { windmillColliders } from './Windmill'
+import Windmill from './Windmill'
 import FishSchool from './Fish'
-import LampPosts, { lampColliders } from './LampPosts'
+import LampPosts from './LampPosts'
 import Stars from './Stars'
 import Flock from './Sheep'
-import Well, { wellColliders } from './Well'
+import Well from './Well'
 import CropField from './CropField'
 import Mushrooms from './Mushrooms'
-import Signposts, { signColliders } from './Signposts'
-import Barn, { barnColliders } from './Barn'
+import Signposts from './Signposts'
+import Barn from './Barn'
 import Beehive from './Beehive'
 import Chickens from './Chickens'
 import TireSwing from './TireSwing'
 import Dock from './Dock'
-import Waterfall, { waterfallColliders } from './Waterfall'
-import Treehouse, { treehouseColliders } from './Treehouse'
-import Scarecrow, { scarecrowColliders } from './Scarecrow'
+import Waterfall from './Waterfall'
+import Treehouse from './Treehouse'
+import Scarecrow from './Scarecrow'
 import HotAirBalloon from './HotAirBalloon'
 import Fireworks from './Fireworks'
 import Clouds from './Clouds'
@@ -41,10 +41,18 @@ import Bridge from './Bridge'
 import Villagers from './Villager'
 import Leaves from './Leaves'
 import Sparkles from './Sparkles'
+import { colliders, POND_CENTER, POND_RADIUS, WORLD_SIZE } from '../world/layout'
 
 const COIN_SOUND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const COMBO_WINDOW_MS = 2000
 const AUTO_FOLLOW_DELAY_MS = 1200
+const MAGNET_RADIUS = 10
+const MAGNET_PULL_SPEED = 6
+const MAGNET_DURATION_MS = 5000
+// Phones report devicePixelRatio 3+; rendering at that density (plus shadows)
+// drops FPS and drains the battery, so cap it lower on touch screens.
+const IS_TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+const DPR = IS_TOUCH ? [1, 1.5] : [1, 2]
 
 function getTimeOfDayValues(timeOfDay) {
   const t = timeOfDay / 24
@@ -84,7 +92,10 @@ function FPSCounter({ onFpsChange }) {
   const reportTimer = useRef(0)
 
   useFrame((state, delta) => {
-    const instantFps = 1 / delta
+    // A zero-length frame gives 1/0 = Infinity, and the smoothing below would
+    // then turn the reading into NaN permanently.
+    if (delta <= 0) return
+    const instantFps = Math.min(1 / delta, 240)
     smoothedFps.current += (instantFps - smoothedFps.current) * 0.1
 
     reportTimer.current += delta
@@ -210,6 +221,7 @@ function CoinManager({ characterRef, coins, setCoins, onCollect, magnetUntilRef 
     if (!characterRef.current) return
     const charPos = characterRef.current.position
     const magnetActive = magnetUntilRef.current > performance.now()
+    let anyInMagnetRange = false
 
     coins.forEach((coin) => {
       const dx = charPos.x - coin.position[0]
@@ -221,18 +233,22 @@ function CoinManager({ characterRef, coins, setCoins, onCollect, magnetUntilRef 
         return
       }
 
-      if (magnetActive && distance < 10) {
-        setCoins((prev) =>
-          prev.map((c) => {
-            if (c.id !== coin.id) return c
-            const pullSpeed = 6
-            const nx = c.position[0] + (dx / distance) * pullSpeed * delta
-            const nz = c.position[2] + (dz / distance) * pullSpeed * delta
-            return { ...c, position: [nx, c.position[1], nz] }
-          })
-        )
-      }
+      if (magnetActive && distance < MAGNET_RADIUS) anyInMagnetRange = true
     })
+
+    if (anyInMagnetRange) {
+      setCoins((prev) =>
+        prev.map((c) => {
+          const dx = charPos.x - c.position[0]
+          const dz = charPos.z - c.position[2]
+          const distance = Math.sqrt(dx * dx + dz * dz)
+          if (distance >= MAGNET_RADIUS || distance === 0) return c
+          const nx = c.position[0] + (dx / distance) * MAGNET_PULL_SPEED * delta
+          const nz = c.position[2] + (dz / distance) * MAGNET_PULL_SPEED * delta
+          return { ...c, position: [nx, c.position[1], nz] }
+        })
+      )
+    }
   })
 
   return null
@@ -243,10 +259,10 @@ function PondZone({ characterRef, onInPond }) {
 
   useFrame(() => {
     if (!characterRef.current) return
-    const dx = characterRef.current.position.x - 35
-    const dz = characterRef.current.position.z - -35
+    const dx = characterRef.current.position.x - POND_CENTER[0]
+    const dz = characterRef.current.position.z - POND_CENTER[2]
     const dist = Math.sqrt(dx * dx + dz * dz)
-    const inside = dist < 8
+    const inside = dist < POND_RADIUS
     if (inside !== wasInside.current) {
       wasInside.current = inside
       if (onInPond) onInPond(inside)
@@ -268,18 +284,11 @@ const initialCoins = [
 const CHARACTER_RADIUS = 0.4
 
 function ObstacleManager({ characterRef }) {
-  const allObstacles = [
-    ...obstacles, ...treeColliders, ...houseColliders, ...fenceColliders,
-    ...windmillColliders, ...lampColliders, ...wellColliders, ...signColliders,
-    ...waterfallColliders, ...treehouseColliders, ...scarecrowColliders,
-    ...barnColliders,
-  ]
-
   useFrame(() => {
     if (!characterRef.current) return
     const charPos = characterRef.current.position
 
-    allObstacles.forEach((obs) => {
+    colliders.forEach((obs) => {
       const dx = charPos.x - obs.position[0]
       const dz = charPos.z - obs.position[2]
       const distance = Math.sqrt(dx * dx + dz * dz)
@@ -307,6 +316,8 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
   const streakCount = useRef(0)
   const sparkleBurstsRef = useRef([])
   const nextBurstId = useRef(1)
+  const collectedIds = useRef(new Set())
+  const lastResetSignal = useRef(0)
 
   const tod = getTimeOfDayValues(timeOfDay)
 
@@ -315,6 +326,8 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
   }, [])
 
   function handleCollect(id, coinPosition) {
+    if (collectedIds.current.has(id)) return
+    collectedIds.current.add(id)
     const collected = coins.find((c) => c.id === id)
     const now = performance.now()
 
@@ -342,7 +355,7 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
     })
     if (onScoreChange) onScoreChange((prevScore) => prevScore + (collected?.value || 1) + comboBonus)
     if (collected?.type === 'star') {
-      magnetUntilRef.current = performance.now() + 5000
+      magnetUntilRef.current = performance.now() + MAGNET_DURATION_MS
     }
     if (coinAudioRef.current) {
       const sound = coinAudioRef.current.cloneNode()
@@ -356,17 +369,19 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
   }
 
   useEffect(() => {
-    if (resetSignal > 0 && characterRef.current) {
-      characterRef.current.position.set(0, 0, 0)
-      setCoins(initialCoins)
-      streakCount.current = 0
-      if (onCoinsLeftChange) onCoinsLeftChange(initialCoins.length)
-      if (onScoreReset) onScoreReset()
-    }
-  }, [resetSignal])
+    if (resetSignal === lastResetSignal.current || !characterRef.current) return
+    lastResetSignal.current = resetSignal
+    characterRef.current.position.set(0, 0, 0)
+    collectedIds.current = new Set()
+    magnetUntilRef.current = 0
+    streakCount.current = 0
+    setCoins(initialCoins)
+    if (onCoinsLeftChange) onCoinsLeftChange(initialCoins.length)
+    if (onScoreReset) onScoreReset()
+  }, [resetSignal, onCoinsLeftChange, onScoreReset])
 
   return (
-    <Canvas shadows camera={{ position: [3, 3, 5], fov: 50 }}>
+    <Canvas shadows="percentage" dpr={DPR} camera={{ position: [3, 3, 5], fov: 50 }}>
       <ambientLight intensity={tod.ambientIntensity} />
       <directionalLight
         position={[15, 20, 10]}
@@ -452,11 +467,13 @@ function Scene({ onScoreChange, onCoinsLeftChange, resetSignal, onScoreReset, ti
       <Landmarks />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[200, 200]} />
+        <planeGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
         <meshStandardMaterial color={tod.groundColor} roughness={1} />
       </mesh>
     </Canvas>
   )
 }
 
-export default Scene
+// Memoised so HUD-only state changes in App (speed, FPS, position) don't
+// re-render the whole 3D tree. Keep callback props stable (useCallback).
+export default memo(Scene)

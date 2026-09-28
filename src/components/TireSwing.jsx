@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { treeColliders } from './Trees'
+import { treeColliders } from '../world/layout'
 
 const anchorTree = treeColliders[Math.floor(treeColliders.length / 3)]
 const SWING_POS = anchorTree ? anchorTree.position : [0, 0, 0]

@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useProgress } from '@react-three/drei'
 import Scene from './components/Scene'
 import TouchJoystick from './components/TouchJoystick'
+import ErrorBoundary from './components/ErrorBoundary'
+import { WORLD_SIZE } from './world/layout'
 
 const MUSIC_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 const WIND_DATA = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
@@ -12,13 +14,22 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+// localStorage can throw (private browsing, storage disabled, quota full), so
+// every read and write is guarded; the game still runs, it just won't remember.
 function loadSetting(key, fallback) {
-  const saved = localStorage.getItem(key)
-  if (saved === null) return fallback
   try {
-    return JSON.parse(saved)
+    const saved = localStorage.getItem(key)
+    return saved === null ? fallback : JSON.parse(saved)
   } catch {
     return fallback
+  }
+}
+
+function saveSetting(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    // Storage unavailable; ignore.
   }
 }
 
@@ -29,8 +40,14 @@ function getNightIntensity(timeOfDay) {
   return 1 - brightness
 }
 
-const WORLD_SIZE = 200
 const MAP_SIZE = 110
+const MAP_SIZE_TOUCH = 80
+
+// Offsets from the screen edge that respect the notch / home indicator.
+const safe = (side, px) => `calc(${px}px + env(safe-area-inset-${side}, 0px))`
+
+// iPhone Safari has no Fullscreen API at all; hide the button there.
+const canFullscreen = !!document.documentElement.requestFullscreen
 
 const panel = {
   background: 'rgba(18,22,18,0.55)',
@@ -81,19 +98,21 @@ function App() {
   const [zoomDistance, setZoomDistance] = useState(5)
   const hasShownFirstCoin = useRef(false)
   const hasShownHighScore = useRef(false)
+  const initialHighScore = useRef(highScore)
   const musicRef = useRef(null)
   const windRef = useRef(null)
   const { progress, active } = useProgress()
 
-  function showToast(message) {
+  const showToast = useCallback((message) => {
     const id = Date.now() + Math.random()
     setToasts((prev) => [...prev, { id, message }])
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
     }, 3000)
-  }
+  }, [])
 
   function toggleFullscreen() {
+    if (!canFullscreen) return
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {})
     } else {
@@ -108,34 +127,41 @@ function App() {
   }, [])
 
   useEffect(() => {
-    localStorage.setItem('baseSpeed', JSON.stringify(baseSpeed))
+    saveSetting('baseSpeed', baseSpeed)
   }, [baseSpeed])
 
   useEffect(() => {
-    localStorage.setItem('dustEnabled', JSON.stringify(dustEnabled))
+    saveSetting('dustEnabled', dustEnabled)
   }, [dustEnabled])
 
   useEffect(() => {
-    localStorage.setItem('shakeEnabled', JSON.stringify(shakeEnabled))
+    saveSetting('shakeEnabled', shakeEnabled)
   }, [shakeEnabled])
 
   useEffect(() => {
-    localStorage.setItem('fogEnabled', JSON.stringify(fogEnabled))
+    saveSetting('fogEnabled', fogEnabled)
   }, [fogEnabled])
 
   useEffect(() => {
-    localStorage.setItem('musicOn', JSON.stringify(musicOn))
+    saveSetting('musicOn', musicOn)
   }, [musicOn])
 
   useEffect(() => {
-    musicRef.current = new Audio(MUSIC_DATA)
-    musicRef.current.loop = true
-    musicRef.current.volume = 0.3
+    const music = new Audio(MUSIC_DATA)
+    music.loop = true
+    music.volume = 0.3
+    musicRef.current = music
 
-    windRef.current = new Audio(WIND_DATA)
-    windRef.current.loop = true
-    windRef.current.volume = 0.1
-    windRef.current.play().catch(() => {})
+    const wind = new Audio(WIND_DATA)
+    wind.loop = true
+    wind.volume = 0.1
+    wind.play().catch(() => {})
+    windRef.current = wind
+
+    return () => {
+      music.pause()
+      wind.pause()
+    }
   }, [])
 
   useEffect(() => {
@@ -162,69 +188,105 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  const levelComplete = coinsLeft === 0
+
   useEffect(() => {
+    if (paused || levelComplete) return
     const interval = setInterval(() => setPlayTime((t) => t + 1), 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [paused, levelComplete])
+
+  // Derived-state update during render (React's recommended alternative to
+  // syncing state in an effect); persisted below.
+  if (score > highScore) setHighScore(score)
 
   useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score)
-      localStorage.setItem('highScore', JSON.stringify(score))
-      if (!hasShownHighScore.current && score > 0) {
-        hasShownHighScore.current = true
-        showToast('🏆 New high score!')
-      }
-    }
-  }, [score])
+    saveSetting('highScore', highScore)
+  }, [highScore])
 
-  function handleScoreChange(updater) {
+  // Callbacks passed to <Scene> must stay stable or its memo is defeated.
+  const handleScoreChange = useCallback((updater) => {
     setScore((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : updater
+      // Refs make these one-shot even when StrictMode double-invokes the updater.
       if (next > prev && !hasShownFirstCoin.current) {
         hasShownFirstCoin.current = true
         showToast('🪙 First coin collected!')
       }
+      if (next > initialHighScore.current && !hasShownHighScore.current) {
+        hasShownHighScore.current = true
+        showToast('🏆 New high score!')
+      }
       return next
     })
-  }
+  }, [showToast])
 
-  function handleCoinsLeftChange(count) {
-    setCoinsLeft(count)
-  }
+  const handleScoreReset = useCallback(() => {
+    setScore(0)
+    setPlayTime(0)
+  }, [])
 
   function handlePlayAgain() {
     setResetSignal((n) => n + 1)
   }
 
-  const dotX = (position.x / WORLD_SIZE) * MAP_SIZE + MAP_SIZE / 2
-  const dotZ = (position.z / WORLD_SIZE) * MAP_SIZE + MAP_SIZE / 2
+  // Touch layout: the joystick and jump/sprint buttons own the bottom corners,
+  // so the minimap moves under the score and the speed/time sliders move into
+  // the settings sheet.
+  const mapSize = isTouchDevice ? MAP_SIZE_TOUCH : MAP_SIZE
+  const dotX = (position.x / WORLD_SIZE) * mapSize + mapSize / 2
+  const dotZ = (position.z / WORLD_SIZE) * mapSize + mapSize / 2
   const nightIntensity = getNightIntensity(timeOfDay)
+
+  const minimap = (
+    <div style={{ ...panel, position: 'relative', width: mapSize, height: mapSize, padding: 0, overflow: 'hidden' }}>
+      <div style={{
+        position: 'absolute',
+        left: Math.min(Math.max(dotX, 5), mapSize - 5),
+        top: Math.min(Math.max(dotZ, 5), mapSize - 5),
+        width: 8, height: 8, borderRadius: '50%', background: '#ff5252',
+        boxShadow: '0 0 6px #ff5252',
+        transform: 'translate(-50%, -50%)',
+      }} />
+    </div>
+  )
+
+  const sliders = (
+    <>
+      <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Speed: {baseSpeed}</label>
+      <input style={{ width: '100%' }} type="range" min="1" max="8" step="0.5" value={baseSpeed} onChange={(e) => setBaseSpeed(Number(e.target.value))} />
+
+      <label style={{ display: 'block', fontSize: '13px', margin: '12px 0 4px' }}>Time: {Math.floor(timeOfDay)}:00</label>
+      <input style={{ width: '100%' }} type="range" min="0" max="24" step="0.25" value={timeOfDay} onChange={(e) => setTimeOfDay(Number(e.target.value))} />
+    </>
+  )
 
   return (
     <>
-      <Scene
-        onScoreChange={handleScoreChange}
-        onCoinsLeftChange={handleCoinsLeftChange}
-        resetSignal={resetSignal}
-        onScoreReset={() => setScore(0)}
-        timeOfDay={timeOfDay}
-        isRaining={isRaining}
-        paused={paused}
-        baseSpeed={baseSpeed}
-        onSpeedChange={setSpeed}
-        onRotationChange={setFacing}
-        onPositionChange={setPosition}
-        onInPond={setInPond}
-        dustEnabled={dustEnabled}
-        shakeEnabled={shakeEnabled}
-        fogEnabled={fogEnabled}
-        levelComplete={coinsLeft === 0}
-        onFpsChange={setFps}
-        onStreakChange={setStreak}
-        screenshotSignal={screenshotSignal}
-        onZoomChange={setZoomDistance}
-      />
+      <ErrorBoundary>
+        <Scene
+          onScoreChange={handleScoreChange}
+          onCoinsLeftChange={setCoinsLeft}
+          resetSignal={resetSignal}
+          onScoreReset={handleScoreReset}
+          timeOfDay={timeOfDay}
+          isRaining={isRaining}
+          paused={paused}
+          baseSpeed={baseSpeed}
+          onSpeedChange={setSpeed}
+          onRotationChange={setFacing}
+          onPositionChange={setPosition}
+          onInPond={setInPond}
+          dustEnabled={dustEnabled}
+          shakeEnabled={shakeEnabled}
+          fogEnabled={fogEnabled}
+          levelComplete={levelComplete}
+          onFpsChange={setFps}
+          onStreakChange={setStreak}
+          screenshotSignal={screenshotSignal}
+          onZoomChange={setZoomDistance}
+        />
+      </ErrorBoundary>
 
       <div style={{
         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -246,52 +308,63 @@ function App() {
         </div>
       )}
 
-      <div style={{ ...panel, position: 'absolute', top: 16, left: 16, padding: '14px 18px', minWidth: '190px', pointerEvents: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '24px', fontWeight: 700 }}>
-          🪙 {score}
-          {streak > 1 && <span style={{ fontSize: '15px', color: '#ffd54f' }}>🔥×{streak}</span>}
-        </div>
-        <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>Best: {highScore}</div>
-
-        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', opacity: 0.9 }}>
-          <div>Speed: {speed.toFixed(1)} m/s</div>
-          <div>Zoom: {zoomDistance.toFixed(1)}</div>
-          <div>⏱ {formatTime(playTime)} &nbsp;·&nbsp; {fps} FPS</div>
-        </div>
-
-        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ width: 18, height: 18, transform: `rotate(${facing}rad)` }}>
-            <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '12px solid #4ade80' }} />
+      <div style={{ position: 'absolute', top: safe('top', 16), left: safe('left', 16), display: 'flex', flexDirection: 'column', gap: '8px', pointerEvents: 'none' }}>
+        <div style={{ ...panel, padding: isTouchDevice ? '10px 14px' : '14px 18px', minWidth: isTouchDevice ? 0 : '190px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '24px', fontWeight: 700 }}>
+            🪙 {score}
+            {streak > 1 && <span style={{ fontSize: '15px', color: '#ffd54f' }}>🔥×{streak}</span>}
           </div>
-          <span style={{ fontSize: '11px', opacity: 0.6 }}>facing</span>
+          <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '2px' }}>Best: {highScore}</div>
+
+          {isTouchDevice ? (
+            <div style={{ marginTop: '6px', fontSize: '12px', opacity: 0.9 }}>⏱ {formatTime(playTime)} · {fps} FPS</div>
+          ) : (
+            <>
+              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', opacity: 0.9 }}>
+                <div>Speed: {speed.toFixed(1)} m/s</div>
+                <div>Zoom: {zoomDistance.toFixed(1)}</div>
+                <div>⏱ {formatTime(playTime)} &nbsp;·&nbsp; {fps} FPS</div>
+              </div>
+
+              <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: 18, height: 18, transform: `rotate(${facing}rad)` }}>
+                  <div style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '12px solid #4ade80' }} />
+                </div>
+                <span style={{ fontSize: '11px', opacity: 0.6 }}>facing</span>
+              </div>
+            </>
+          )}
         </div>
+        {isTouchDevice && minimap}
       </div>
+
+      {!isTouchDevice && (
+        <div style={{ position: 'absolute', bottom: safe('bottom', 16), left: safe('left', 16), pointerEvents: 'none' }}>
+          {minimap}
+        </div>
+      )}
 
       <div style={{
-        ...panel, position: 'absolute', bottom: 16, left: 16, width: MAP_SIZE, height: MAP_SIZE,
-        padding: 0, overflow: 'hidden', pointerEvents: 'none',
+        position: 'absolute', top: safe('top', 16), right: safe('right', 16), display: 'flex', gap: '8px', flexWrap: 'wrap',
+        maxWidth: isTouchDevice ? 'calc(100% - 170px)' : '340px', justifyContent: 'flex-end',
       }}>
-        <div style={{
-          position: 'absolute',
-          left: Math.min(Math.max(dotX, 5), MAP_SIZE - 5),
-          top: Math.min(Math.max(dotZ, 5), MAP_SIZE - 5),
-          width: 8, height: 8, borderRadius: '50%', background: '#ff5252',
-          boxShadow: '0 0 6px #ff5252',
-          transform: 'translate(-50%, -50%)',
-        }} />
-      </div>
-
-      <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: '8px', flexWrap: 'wrap', maxWidth: '340px', justifyContent: 'flex-end' }}>
-        <button style={button} onClick={() => setResetSignal((n) => n + 1)}>↺ Respawn</button>
-        <button style={button} onClick={() => setIsRaining((r) => !r)}>{isRaining ? '☀ Stop Rain' : '🌧 Rain'}</button>
-        <button style={button} onClick={() => setMusicOn((m) => !m)}>{musicOn ? '🔊 Music' : '🔇 Music'}</button>
-        <button style={button} onClick={() => setScreenshotSignal((n) => n + 1)}>📸</button>
-        <button style={button} onClick={toggleFullscreen}>{isFullscreen ? '🡼' : '⛶'}</button>
-        <button style={button} onClick={() => setShowSettings((s) => !s)}>⚙️</button>
+        <button style={button} onClick={() => setPaused((p) => !p)} aria-label="Pause">⏸</button>
+        <button style={button} onClick={handlePlayAgain} aria-label="Respawn">{isTouchDevice ? '↺' : '↺ Respawn'}</button>
+        <button style={button} onClick={() => setIsRaining((r) => !r)} aria-label={isRaining ? 'Stop Rain' : 'Rain'}>
+          {isTouchDevice ? (isRaining ? '☀' : '🌧') : (isRaining ? '☀ Stop Rain' : '🌧 Rain')}
+        </button>
+        <button style={button} onClick={() => setMusicOn((m) => !m)} aria-label={musicOn ? 'Music on' : 'Music off'}>
+          {isTouchDevice ? (musicOn ? '🔊' : '🔇') : (musicOn ? '🔊 Music' : '🔇 Music')}
+        </button>
+        <button style={button} onClick={() => setScreenshotSignal((n) => n + 1)} aria-label="Screenshot">📸</button>
+        {canFullscreen && <button style={button} onClick={toggleFullscreen} aria-label="Fullscreen">{isFullscreen ? '🡼' : '⛶'}</button>}
+        <button style={button} onClick={() => setShowSettings((s) => !s)} aria-label="Settings">⚙️</button>
       </div>
 
       {showSettings && (
-        <div style={{ ...panel, position: 'absolute', top: 68, right: 16, padding: '14px 18px', fontSize: '14px' }}>
+        <div style={isTouchDevice
+          ? { ...panel, position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', padding: '18px 20px', fontSize: '15px', width: 'min(280px, calc(100% - 48px))', zIndex: 500 }
+          : { ...panel, position: 'absolute', top: 68, right: 16, padding: '14px 18px', fontSize: '14px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <input type="checkbox" checked={dustEnabled} onChange={(e) => setDustEnabled(e.target.checked)} /> Dust particles
           </label>
@@ -301,18 +374,24 @@ function App() {
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input type="checkbox" checked={fogEnabled} onChange={(e) => setFogEnabled(e.target.checked)} /> Fog
           </label>
+          {isTouchDevice && (
+            <>
+              <div style={{ marginTop: '14px' }}>{sliders}</div>
+              <button style={{ ...button, width: '100%', marginTop: '16px' }} onClick={() => setShowSettings(false)}>Done</button>
+            </>
+          )}
         </div>
       )}
 
-      <div style={{ ...panel, position: 'absolute', bottom: 16, right: 16, padding: '14px 18px', width: '200px' }}>
-        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px' }}>Speed: {baseSpeed}</label>
-        <input style={{ width: '100%' }} type="range" min="1" max="8" step="0.5" value={baseSpeed} onChange={(e) => setBaseSpeed(Number(e.target.value))} />
+      {!isTouchDevice && (
+        <div style={{ ...panel, position: 'absolute', bottom: safe('bottom', 16), right: safe('right', 16), padding: '14px 18px', width: '200px' }}>
+          {sliders}
+        </div>
+      )}
 
-        <label style={{ display: 'block', fontSize: '13px', margin: '12px 0 4px' }}>Time: {Math.floor(timeOfDay)}:00</label>
-        <input style={{ width: '100%' }} type="range" min="0" max="24" step="0.25" value={timeOfDay} onChange={(e) => setTimeOfDay(Number(e.target.value))} />
-      </div>
-
-      <div style={{ position: 'absolute', top: 68, right: 16, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+      <div style={isTouchDevice
+        ? { position: 'absolute', top: '24%', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center', pointerEvents: 'none' }
+        : { position: 'absolute', top: 68, right: 16, display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', pointerEvents: 'none' }}>
         {toasts.map((toast) => (
           <div key={toast.id} style={{ ...panel, padding: '10px 16px', fontSize: '14px' }}>
             {toast.message}
@@ -320,13 +399,14 @@ function App() {
         ))}
       </div>
 
-      {coinsLeft === 0 && (
+      {levelComplete && (
         <div style={{
           position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
           background: 'rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: 'sans-serif',
+          padding: '16px', textAlign: 'center',
         }}>
-          <div style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '12px', textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>
+          <div style={{ fontSize: 'clamp(28px, 8vw, 48px)', fontWeight: 'bold', marginBottom: '12px', textShadow: '0 2px 6px rgba(0,0,0,0.7)' }}>
             🎉 Level Complete!
           </div>
           <div style={{ fontSize: '20px', marginBottom: '24px' }}>Final score: {score}</div>
@@ -340,8 +420,16 @@ function App() {
       )}
 
       {paused && (
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '48px', fontFamily: 'sans-serif', fontWeight: 'bold' }}>
-          PAUSED (press Esc to resume)
+        <div
+          onClick={() => setPaused(false)}
+          style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            color: 'white', fontFamily: 'sans-serif', textAlign: 'center', cursor: 'pointer', zIndex: 600,
+          }}
+        >
+          <div style={{ fontSize: 'clamp(32px, 9vw, 48px)', fontWeight: 'bold' }}>PAUSED</div>
+          <div style={{ fontSize: '16px', opacity: 0.85 }}>{isTouchDevice ? 'Tap anywhere to resume' : 'Press Esc or click to resume'}</div>
         </div>
       )}
 

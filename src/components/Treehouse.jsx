@@ -1,4 +1,4 @@
-const TREEHOUSE_POS = [-7, 0, -20]
+import { TREEHOUSE_POS } from '../world/layout'
 
 function Treehouse() {
   return (
@@ -30,7 +30,5 @@ function Treehouse() {
     </group>
   )
 }
-
-export const treehouseColliders = [{ position: TREEHOUSE_POS, radius: 0.7 }]
 
 export default Treehouse

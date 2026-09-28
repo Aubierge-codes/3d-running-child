@@ -1,14 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-
-const lampPositions = [
-  [18, 0, 12],
-  [26, 0, 22],
-  [-18, 0, -12],
-  [-26, 0, -22],
-  [0, 0, 16],
-  [12, 0, -14],
-]
+import { lampPositions } from '../world/layout'
 
 function LampPost({ position, isNight }) {
   const bulbRef = useRef()
@@ -44,8 +36,6 @@ function LampPost({ position, isNight }) {
     </group>
   )
 }
-
-export const lampColliders = lampPositions.map((p) => ({ position: p, radius: 0.35 }))
 
 function LampPosts({ isNight }) {
   return (

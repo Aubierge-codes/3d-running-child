@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-
-const FALL_POS = [-55, 0, -60]
+import { WATERFALL_POS } from '../world/layout'
 
 function Waterfall() {
   const streamRefs = useRef([])
@@ -20,14 +19,14 @@ function Waterfall() {
   })
 
   return (
-    <group position={FALL_POS}>
+    <group position={WATERFALL_POS}>
       <mesh position={[0, 4.5, -0.5]} castShadow receiveShadow>
         <boxGeometry args={[6, 9, 2]} />
         <meshStandardMaterial color="#6b6358" roughness={1} />
       </mesh>
       <mesh position={[-2.2, 6, 0.6]} rotation={[0.1, 0.2, 0]} castShadow>
         <boxGeometry args={[2.5, 4, 1.8]} />
-        <meshStandardMaterial color="#79706280" roughness={1} />
+        <meshStandardMaterial color="#797062" roughness={1} />
       </mesh>
 
       {[0, 1, 2, 3, 4].map((i) => (
@@ -44,7 +43,5 @@ function Waterfall() {
     </group>
   )
 }
-
-export const waterfallColliders = [{ position: FALL_POS, radius: 3.5 }]
 
 export default Waterfall

@@ -1,4 +1,4 @@
-const BARN_POS = [30, 0, 10]
+import { BARN_POS } from '../world/layout'
 
 function Barn() {
   return (
@@ -42,7 +42,5 @@ function Barn() {
     </group>
   )
 }
-
-export const barnColliders = [{ position: BARN_POS, radius: 3.2 }]
 
 export default Barn

@@ -10,11 +10,7 @@ function Sparkles({ burstsRef }) {
   const lastProcessedBurst = useRef(0)
 
   useFrame((state, delta) => {
-    const bursts = burstsRef.current
-    bursts.forEach((burst) => {
-      if (burst.id <= lastProcessedBurst.current) return
-    })
-    const newBursts = bursts.filter((b) => b.id > lastProcessedBurst.current)
+    const newBursts = burstsRef.current.filter((b) => b.id > lastProcessedBurst.current)
     if (newBursts.length > 0) {
       newBursts.forEach((burst) => {
         for (let i = 0; i < PARTICLES_PER_BURST; i++) {

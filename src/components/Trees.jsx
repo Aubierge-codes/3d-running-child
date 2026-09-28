@@ -1,40 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-
-function seededRandom(seed) {
-  let value = seed
-  return function () {
-    value = (value * 9301 + 49297) % 233280
-    return value / 233280
-  }
-}
-
-function generatePositions(count, worldSize, clearRadius, seed) {
-  const rand = seededRandom(seed)
-  const positions = []
-
-  for (let i = 0; i < count; i++) {
-    let x, z, distFromCenter
-
-    do {
-      x = (rand() - 0.5) * worldSize
-      z = (rand() - 0.5) * worldSize
-      distFromCenter = Math.sqrt(x * x + z * z)
-    } while (distFromCenter < clearRadius)
-
-    positions.push([x, 0, z])
-  }
-
-  return positions
-}
-
-const treePositions = generatePositions(40, 180, 10, 42)
-
-export const treeColliders = treePositions.map((pos, i) => ({
-  position: pos,
-  radius: 0.5,
-  scale: 0.8 + ((i * 13) % 10) / 10,
-}))
+import { treeColliders } from '../world/layout'
 
 function Tree({ position, scale, phaseOffset }) {
   const foliageRef = useRef()

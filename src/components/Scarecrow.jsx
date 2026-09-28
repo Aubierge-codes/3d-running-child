@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { SCARECROW_POS } from '../world/layout'
 
-const SCARECROW_POS = [-30, 0, 13]
+const STRAW_TILTS = [-0.18, 0.07, 0.24]
 
 function Scarecrow() {
   const armsRef = useRef()
@@ -44,8 +45,8 @@ function Scarecrow() {
         <meshStandardMaterial color="#c9a03a" roughness={1} />
       </mesh>
 
-      {[0, 1, 2].map((i) => (
-        <mesh key={i} position={[-0.15 + i * 0.15, 0.42, 0]} rotation={[0, 0, (Math.random() - 0.5) * 0.6]}>
+      {STRAW_TILTS.map((tilt, i) => (
+        <mesh key={i} position={[-0.15 + i * 0.15, 0.42, 0]} rotation={[0, 0, tilt]}>
           <cylinderGeometry args={[0.015, 0.015, 0.5, 4]} />
           <meshStandardMaterial color="#c9a03a" roughness={1} />
         </mesh>
@@ -53,7 +54,5 @@ function Scarecrow() {
     </group>
   )
 }
-
-export const scarecrowColliders = [{ position: SCARECROW_POS, radius: 0.4 }]
 
 export default Scarecrow

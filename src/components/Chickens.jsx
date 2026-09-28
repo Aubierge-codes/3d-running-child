@@ -11,7 +11,7 @@ function Chicken({ origin, range, speed, offset, color }) {
   const groupRef = useRef()
   const headRef = useRef()
   const prev = useRef({ x: origin[0], z: origin[2] })
-  const peckTimer = useRef(Math.random() * 3)
+  const peckTimer = useRef(offset % 3)
   const peckPhase = useRef(0)
 
   useFrame((state, delta) => {
@@ -61,8 +61,8 @@ function Chicken({ origin, range, speed, offset, color }) {
           <sphereGeometry args={[0.08, 8, 8]} />
           <meshStandardMaterial color={color} roughness={0.95} />
         </mesh>
-        <mesh position={[0, 0, 0.08]}>
-          <coneGeometry args={[0.025, 0.08, 5]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh position={[0, 0, 0.08]} rotation={[Math.PI / 2, 0, 0]}>
+          <coneGeometry args={[0.025, 0.08, 5]} />
           <meshStandardMaterial color="#e8a13a" roughness={0.9} />
         </mesh>
         <mesh position={[0, 0.09, 0]}>

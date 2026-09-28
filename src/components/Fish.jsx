@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-
-const POND_CENTER = [35, 0, -35]
+import { POND_CENTER } from '../world/layout'
 
 const fishData = [
   { radius: 4.5, speed: 0.45, offset: 0, depth: -0.25, color: '#e8734a', scale: 1 },

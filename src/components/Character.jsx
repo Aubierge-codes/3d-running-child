@@ -6,6 +6,8 @@ import { useKeyboardControls } from '../hooks/useKeyboardControls'
 const GRAVITY = 20
 const JUMP_STRENGTH = 7
 const SQUASH_DURATION = 0.25
+// BASE_URL keeps the path correct when the app is deployed under a sub-path.
+const MODEL_URL = `${import.meta.env.BASE_URL}models/child.glb`
 
 function shortestAngleDiff(target, current) {
   const twoPi = Math.PI * 2
@@ -16,7 +18,7 @@ function shortestAngleDiff(target, current) {
 }
 
 function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange, onRotationChange, onPositionChange }) {
-  const { scene, animations } = useGLTF('/models/child.glb')
+  const { scene, animations } = useGLTF(MODEL_URL)
   const { actions } = useAnimations(animations, characterRef)
   const keys = useKeyboardControls()
   const activeAction = useRef(null)
@@ -40,8 +42,10 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
   }, [])
 
   useEffect(() => {
-    activeAction.current = actions['Idle']
-    activeAction.current.reset().play()
+    const idle = actions['Idle']
+    if (!idle || activeAction.current === idle) return
+    activeAction.current = idle
+    idle.reset().play()
   }, [actions])
 
   useEffect(() => {
@@ -82,9 +86,9 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
 
   function fadeToAction(name, duration = 0.3) {
     const nextAction = actions[name]
-    if (activeAction.current === nextAction) return
+    if (!nextAction || activeAction.current === nextAction) return
     nextAction.reset().fadeIn(duration).play()
-    activeAction.current.fadeOut(duration)
+    if (activeAction.current) activeAction.current.fadeOut(duration)
     activeAction.current = nextAction
   }
 
@@ -172,12 +176,13 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
 
     reportTimer.current += delta
     if (reportTimer.current > 0.15) {
+      const elapsed = reportTimer.current
       reportTimer.current = 0
       const dx = characterRef.current.position.x - lastPos.current.x
       const dz = characterRef.current.position.z - lastPos.current.z
       const dist = Math.sqrt(dx * dx + dz * dz)
       lastPos.current = { x: characterRef.current.position.x, z: characterRef.current.position.z }
-      if (onSpeedChange) onSpeedChange(dist / 0.15)
+      if (onSpeedChange) onSpeedChange(dist / elapsed)
       if (onRotationChange) onRotationChange(characterRef.current.rotation.y)
       if (onPositionChange) onPositionChange({ x: characterRef.current.position.x, z: characterRef.current.position.z })
     }
@@ -185,5 +190,7 @@ function Character({ characterRef, paused, baseSpeed = 3, onLand, onSpeedChange,
 
   return <primitive ref={characterRef} object={scene} />
 }
+
+useGLTF.preload(MODEL_URL)
 
 export default Character

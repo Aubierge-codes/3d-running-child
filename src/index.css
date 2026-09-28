@@ -4,6 +4,25 @@ html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  background: #0a1a0a;
+}
+
+/* Mobile browsers: 100% height includes the space behind the URL bar, so use
+   the dynamic viewport where supported. Also stop pull-to-refresh, rubber-band
+   scrolling, long-press text selection and the grey tap flash on buttons. */
+@supports (height: 100dvh) {
+  html, body, #root {
+    height: 100dvh;
+  }
+}
+
+body {
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 canvas {

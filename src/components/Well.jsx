@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-
-const WELL_POS = [22, 0, -8]
+import { WELL_POS } from '../world/layout'
 
 function Well() {
   const bucketRef = useRef()
@@ -59,7 +58,5 @@ function Well() {
     </group>
   )
 }
-
-export const wellColliders = [{ position: WELL_POS, radius: 1.4 }]
 
 export default Well

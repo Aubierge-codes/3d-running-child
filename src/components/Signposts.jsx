@@ -1,8 +1,4 @@
-const signData = [
-  { position: [6, 0, 14], rotationY: 0.4, arms: [{ dir: 1, label: 'village' }, { dir: -1, label: 'pond' }] },
-  { position: [-12, 0, -6], rotationY: -0.8, arms: [{ dir: 1, label: 'forest' }] },
-  { position: [20, 0, 4], rotationY: 1.4, arms: [{ dir: -1, label: 'well' }, { dir: 1, label: 'farm' }] },
-]
+import { signData } from '../world/layout'
 
 function Signpost({ position, rotationY, arms }) {
   return (
@@ -32,8 +28,6 @@ function Signpost({ position, rotationY, arms }) {
     </group>
   )
 }
-
-export const signColliders = signData.map((s) => ({ position: s.position, radius: 0.3 }))
 
 function Signposts() {
   return (

@@ -2,12 +2,13 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 
 const PARTICLES_PER_BURST = 40
+const POOL_SIZE = PARTICLES_PER_BURST * 3
 const COLORS = ['#ff5252', '#ffd54f', '#69f0ae', '#40c4ff', '#e040fb']
 
 function Fireworks({ active }) {
   const meshRefs = useRef([])
   const particles = useRef(
-    Array.from({ length: PARTICLES_PER_BURST * 3 }, () => ({ active: false, life: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, color: '#fff' }))
+    Array.from({ length: POOL_SIZE }, () => ({ active: false, life: 0, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, color: '#fff' }))
   )
   const wasActive = useRef(false)
   const launchTimer = useRef(0)
@@ -76,7 +77,7 @@ function Fireworks({ active }) {
 
   return (
     <>
-      {particles.current.map((_, i) => (
+      {Array.from({ length: POOL_SIZE }).map((_, i) => (
         <mesh key={i} ref={(el) => (meshRefs.current[i] = el)} visible={false}>
           <sphereGeometry args={[1, 6, 6]} />
           <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={1.4} transparent opacity={0} />

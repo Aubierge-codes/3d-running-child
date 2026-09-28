@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { WINDMILL_POS } from '../world/layout'
 
-function Windmill({ position = [-30, 0, 22] }) {
+function Windmill() {
   const bladesRef = useRef()
 
   useFrame((state, delta) => {
@@ -9,7 +10,7 @@ function Windmill({ position = [-30, 0, 22] }) {
   })
 
   return (
-    <group position={position}>
+    <group position={WINDMILL_POS}>
       <mesh position={[0, 3, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[1.1, 1.8, 6, 8]} />
         <meshStandardMaterial color="#d8c9a3" roughness={0.9} />
@@ -20,8 +21,8 @@ function Windmill({ position = [-30, 0, 22] }) {
         <meshStandardMaterial color="#8a3a2e" roughness={0.85} />
       </mesh>
 
-      <mesh position={[0, 4.4, 1.15]} castShadow>
-        <cylinderGeometry args={[0.13, 0.13, 0.6, 8]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[0, 4.4, 1.15]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.13, 0.13, 0.6, 8]} />
         <meshStandardMaterial color="#5a4028" roughness={0.9} />
       </mesh>
 
@@ -47,7 +48,5 @@ function Windmill({ position = [-30, 0, 22] }) {
     </group>
   )
 }
-
-export const windmillColliders = [{ position: [-30, 0, 22], radius: 2.2 }]
 
 export default Windmill
